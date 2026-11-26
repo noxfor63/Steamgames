@@ -9,6 +9,7 @@
 
 ## Implementation
 
+- Idea selection comes before implementation. Present concepts and discuss them with the user; create or change a prototype only after the user explicitly selects that concept. Research, comparisons, and repository documentation are authorized while choosing. The existing "Большой вдох" prototype is an unapproved experiment, not the selected game.
 - This is a buildless browser prototype. Keep the application in `dist/`, tests in `tests/`, and durable design notes in `docs/`.
 - Current direction: real 3D, first-person, relaxing repeated action with large visible growth. No per-action puzzles, sorting, resource routing, timers, upkeep, or failure penalties.
 - Keep gameplay rules deterministic and independent from DOM, WebGL, storage, and audio in `dist/engine.js`.
