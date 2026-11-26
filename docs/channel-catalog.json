@@ -1,0 +1,975 @@
+{
+  "checked_at": "2026-11-27",
+  "method": "Public Telegram history of the author, followed rel=prev to post 1. Not a verified complete YouTube channel export. Videos not watched.",
+  "coverage": {
+    "pages": 10,
+    "visible_posts": 191,
+    "posts_with_youtube_links": 98,
+    "unique_video_ids": 96
+  },
+  "pages": [
+    {
+      "url": "https://t.me/s/sdnevka",
+      "min_post": 208,
+      "max_post": 227,
+      "post_count": 19,
+      "next_older_page": "https://t.me/s/sdnevka?before=208"
+    },
+    {
+      "url": "https://t.me/s/sdnevka?before=208",
+      "min_post": 185,
+      "max_post": 206,
+      "post_count": 20,
+      "next_older_page": "https://t.me/s/sdnevka?before=185"
+    },
+    {
+      "url": "https://t.me/s/sdnevka?before=185",
+      "min_post": 164,
+      "max_post": 184,
+      "post_count": 20,
+      "next_older_page": "https://t.me/s/sdnevka?before=164"
+    },
+    {
+      "url": "https://t.me/s/sdnevka?before=164",
+      "min_post": 144,
+      "max_post": 163,
+      "post_count": 20,
+      "next_older_page": "https://t.me/s/sdnevka?before=144"
+    },
+    {
+      "url": "https://t.me/s/sdnevka?before=144",
+      "min_post": 124,
+      "max_post": 143,
+      "post_count": 20,
+      "next_older_page": "https://t.me/s/sdnevka?before=124"
+    },
+    {
+      "url": "https://t.me/s/sdnevka?before=124",
+      "min_post": 104,
+      "max_post": 123,
+      "post_count": 20,
+      "next_older_page": "https://t.me/s/sdnevka?before=104"
+    },
+    {
+      "url": "https://t.me/s/sdnevka?before=104",
+      "min_post": 81,
+      "max_post": 103,
+      "post_count": 20,
+      "next_older_page": "https://t.me/s/sdnevka?before=81"
+    },
+    {
+      "url": "https://t.me/s/sdnevka?before=81",
+      "min_post": 60,
+      "max_post": 80,
+      "post_count": 20,
+      "next_older_page": "https://t.me/s/sdnevka?before=60"
+    },
+    {
+      "url": "https://t.me/s/sdnevka?before=60",
+      "min_post": 29,
+      "max_post": 58,
+      "post_count": 20,
+      "next_older_page": "https://t.me/s/sdnevka?before=29"
+    },
+    {
+      "url": "https://t.me/s/sdnevka?before=29",
+      "min_post": 1,
+      "max_post": 28,
+      "post_count": 12,
+      "next_older_page": null
+    }
+  ],
+  "videos": [
+    {
+      "post": "https://t.me/sdnevka/16",
+      "published_at": "2025-11-08T00:58:34+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=I9AF1uirQ-4",
+      "video_id": "I9AF1uirQ-4",
+      "game": "Leaf it Alone",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/19",
+      "published_at": "2025-11-14T09:07:29+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=krdBBjdwTVs",
+      "video_id": "krdBBjdwTVs",
+      "game": "A Game About Digging A Hole",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/25",
+      "published_at": "2025-11-16T19:50:02+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=BxQERTBOak4",
+      "video_id": "BxQERTBOak4",
+      "game": "Restore Your Island",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/34",
+      "published_at": "2025-11-22T20:16:18+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=rDqQ53i2ETs",
+      "video_id": "rDqQ53i2ETs",
+      "game": "Leaf Blower Co",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/38",
+      "published_at": "2025-11-28T15:36:17+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=4W8YaQTHMzA",
+      "video_id": "4W8YaQTHMzA",
+      "game": "DrainSim",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/44",
+      "published_at": "2025-12-07T15:10:17+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=SGD0ZPT2xmA",
+      "video_id": "SGD0ZPT2xmA",
+      "game": "Prison Escape Simulator",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/48",
+      "published_at": "2025-12-12T16:12:26+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=YW0eRg6vGxk",
+      "video_id": "YW0eRg6vGxk",
+      "game": "My Wife Threw Out My Card Collection",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/48",
+      "published_at": "2025-12-12T16:12:26+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=SGD0ZPT2xmA",
+      "video_id": "SGD0ZPT2xmA",
+      "game": "My Wife Threw Out My Card Collection",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/50",
+      "published_at": "2025-12-15T18:37:44+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=pbx5tiKi4-o",
+      "video_id": "pbx5tiKi4-o",
+      "game": "House Flipper 2",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/57",
+      "published_at": "2025-12-20T17:49:01+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=lzyVYVEQTbU",
+      "video_id": "lzyVYVEQTbU",
+      "game": "ReStory Chill Electronics Repairs",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/58",
+      "published_at": "2025-12-25T19:40:36+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=YrIgD4Nuca0",
+      "video_id": "YrIgD4Nuca0",
+      "game": "iDigging",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/63",
+      "published_at": "2025-12-31T15:36:15+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=pLXiiGh4vwo",
+      "video_id": "pLXiiGh4vwo",
+      "game": "Mall Simulator",
+      "game_identification": "explicit",
+      "scope": "other_creator"
+    },
+    {
+      "post": "https://t.me/sdnevka/65",
+      "published_at": "2026-01-09T18:16:07+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=h4ySr1R5uDU",
+      "video_id": "h4ySr1R5uDU",
+      "game": "Monster Care Simulator",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/70",
+      "published_at": "2026-01-23T16:45:45+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=ZjEkODNLU-0",
+      "video_id": "ZjEkODNLU-0",
+      "game": "Forest Hustle",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/73",
+      "published_at": "2026-01-24T16:26:45+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=dPFwDlvzhqQ",
+      "video_id": "dPFwDlvzhqQ",
+      "game": "House Flipper 2",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/74",
+      "published_at": "2026-02-02T18:16:52+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=aFd5aOOpopg",
+      "video_id": "aFd5aOOpopg",
+      "game": "Ship Graveyard Simulator 2",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/77",
+      "published_at": "2026-02-11T11:39:13+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=_9FQ1W8sNUw",
+      "video_id": "_9FQ1W8sNUw",
+      "game": "Sip Fisher",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/81",
+      "published_at": "2026-02-19T16:20:39+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=JXDyzg5qKis",
+      "video_id": "JXDyzg5qKis",
+      "game": "Cash Cleaner Simulator",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/88",
+      "published_at": "2026-02-26T17:36:25+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=RY28rgHCq0w",
+      "video_id": "RY28rgHCq0w",
+      "game": "One Man´s Trash",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/93",
+      "published_at": "2026-02-28T21:32:07+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=3cGWEvQeOxU",
+      "video_id": "3cGWEvQeOxU",
+      "game": "Ship Graveyard Simulator 2",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/94",
+      "published_at": "2026-03-01T16:17:41+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=0vp_xyXu1S0",
+      "video_id": "0vp_xyXu1S0",
+      "game": "Meltopia Demo",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/99",
+      "published_at": "2026-03-17T19:28:49+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=wNmOHzMRIBg",
+      "video_id": "wNmOHzMRIBg",
+      "game": "Untitled Goose Game",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/102",
+      "published_at": "2026-03-19T08:48:04+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=Lmln4hVqda4",
+      "video_id": "Lmln4hVqda4",
+      "game": "Ship Graveyard Simulator 2",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/103",
+      "published_at": "2026-03-20T17:25:28+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=iO9OyA_8iis",
+      "video_id": "iO9OyA_8iis",
+      "game": "PowerWash Simulator",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/106",
+      "published_at": "2026-03-25T14:36:11+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=Oj-lMgLEK34",
+      "video_id": "Oj-lMgLEK34",
+      "game": "Is This Seat Taken",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/107",
+      "published_at": "2026-03-26T19:01:17+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=RGmt3km4AHc",
+      "video_id": "RGmt3km4AHc",
+      "game": "Vending Machine Business Simulator",
+      "game_identification": "inferred",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/108",
+      "published_at": "2026-03-31T18:35:30+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=3JS7h7Df6RA",
+      "video_id": "3JS7h7Df6RA",
+      "game": "Crime Scene Cleaner",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/109",
+      "published_at": "2026-04-02T10:39:12+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=C_IaJq2UmFA",
+      "video_id": "C_IaJq2UmFA",
+      "game": "Scritchy Scratchy",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/111",
+      "published_at": "2026-04-04T06:43:24+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=r4PQr1-j1i0",
+      "video_id": "r4PQr1-j1i0",
+      "game": "Hozy",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/112",
+      "published_at": "2026-04-04T11:24:18+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=r4PQr1-j1i0",
+      "video_id": "r4PQr1-j1i0",
+      "game": null,
+      "game_identification": "unknown",
+      "scope": "repeated_reference"
+    },
+    {
+      "post": "https://t.me/sdnevka/114",
+      "published_at": "2026-04-08T08:59:30+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=CQRo-bBCQFg",
+      "video_id": "CQRo-bBCQFg",
+      "game": "Wasteland Bites",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/115",
+      "published_at": "2026-04-11T07:50:19+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=Wa6_3jM7CZo",
+      "video_id": "Wa6_3jM7CZo",
+      "game": "Restore Your Island",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/117",
+      "published_at": "2026-04-12T12:02:29+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=MITSw6zCWjs",
+      "video_id": "MITSw6zCWjs",
+      "game": "The Spotter Dig Or Die",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/118",
+      "published_at": "2026-04-18T06:29:51+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=gRzEIH5cwM0",
+      "video_id": "gRzEIH5cwM0",
+      "game": null,
+      "game_identification": "unknown",
+      "scope": "secondary_channel"
+    },
+    {
+      "post": "https://t.me/sdnevka/119",
+      "published_at": "2026-04-24T14:26:25+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=aW-puxNbuoQ",
+      "video_id": "aW-puxNbuoQ",
+      "game": "Retro Rewind - Video Store Simulator",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/120",
+      "published_at": "2026-05-01T19:07:41+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=wKsHbpMo08Q",
+      "video_id": "wKsHbpMo08Q",
+      "game": "Meltopia",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/121",
+      "published_at": "2026-05-09T11:29:40+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=l2jN60yoDvw",
+      "video_id": "l2jN60yoDvw",
+      "game": "Сталкрафт",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/123",
+      "published_at": "2026-05-12T06:13:05+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=SC32dSt3RdA",
+      "video_id": "SC32dSt3RdA",
+      "game": "Размена не Будет",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/124",
+      "published_at": "2026-05-15T13:07:39+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=plhblhijFbE",
+      "video_id": "plhblhijFbE",
+      "game": "Alaska Gold Fever",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/125",
+      "published_at": "2026-05-20T09:43:33+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=_EdVmtFZXwI",
+      "video_id": "_EdVmtFZXwI",
+      "game": "Librarian: Tidy Up the Arcane Library",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/126",
+      "published_at": "2026-05-22T13:52:09+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=oaWP2A_FB7A",
+      "video_id": "oaWP2A_FB7A",
+      "game": "Dig & Deal",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/127",
+      "published_at": "2026-05-24T12:27:37+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=tDdTfbPVKtc",
+      "video_id": "tDdTfbPVKtc",
+      "game": null,
+      "game_identification": "unknown",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/128",
+      "published_at": "2026-05-26T06:26:34+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=xMJMRMoeVgE",
+      "video_id": "xMJMRMoeVgE",
+      "game": "The Greenening",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/130",
+      "published_at": "2026-05-29T21:15:52+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=6x5M8wtljbw",
+      "video_id": "6x5M8wtljbw",
+      "game": "Farm to Table",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/131",
+      "published_at": "2026-06-03T15:03:21+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=Gqnn-2SOkcE",
+      "video_id": "Gqnn-2SOkcE",
+      "game": "Scale the Depth",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/133",
+      "published_at": "2026-06-05T09:22:24+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=EW7j4c6IYrs",
+      "video_id": "EW7j4c6IYrs",
+      "game": "Chef Knight",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/134",
+      "published_at": "2026-06-07T20:04:53+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=6B0DNuGzyeU",
+      "video_id": "6B0DNuGzyeU",
+      "game": "Slots & Diapers",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/136",
+      "published_at": "2026-06-23T14:13:32+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=gdN9gDqK32A",
+      "video_id": "gdN9gDqK32A",
+      "game": "How to Make an Atomic Bomb in Your Garden",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/137",
+      "published_at": "2026-06-24T16:05:03+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=shOpSF48eG0",
+      "video_id": "shOpSF48eG0",
+      "game": null,
+      "game_identification": "unknown",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/138",
+      "published_at": "2026-06-25T21:12:19+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=IIk7ahiZ-H8",
+      "video_id": "IIk7ahiZ-H8",
+      "game": "The Walking Trade",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/139",
+      "published_at": "2026-06-27T11:24:44+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=wWX_71-A9UI",
+      "video_id": "wWX_71-A9UI",
+      "game": "Reshine",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/140",
+      "published_at": "2026-06-30T08:30:13+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=M797fgKB-GY",
+      "video_id": "M797fgKB-GY",
+      "game": "Prison Escape Simulator: Dig Out",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/141",
+      "published_at": "2026-07-02T14:33:02+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=WdTfczQ93VI",
+      "video_id": "WdTfczQ93VI",
+      "game": "Supermarket Chaos",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/142",
+      "published_at": "2026-07-05T07:07:35+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=MCD4GqaDgQY",
+      "video_id": "MCD4GqaDgQY",
+      "game": "Keep on Mining",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/143",
+      "published_at": "2026-07-09T13:07:58+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=YfTqUzEQJCw",
+      "video_id": "YfTqUzEQJCw",
+      "game": "Trashy Cashy",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/150",
+      "published_at": null,
+      "youtube_url": "https://www.youtube.com/watch?v=RGmt3km4AHc",
+      "video_id": "RGmt3km4AHc",
+      "game": null,
+      "game_identification": "unknown",
+      "scope": "repeated_reference"
+    },
+    {
+      "post": "https://t.me/sdnevka/152",
+      "published_at": "2026-07-16T05:54:39+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=uUrIpRcVjU4",
+      "video_id": "uUrIpRcVjU4",
+      "game": "Cat Mail Co.",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/153",
+      "published_at": "2026-07-16T12:59:13+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=4Bpgyhyp3dw",
+      "video_id": "4Bpgyhyp3dw",
+      "game": "Chop Chop Inc.",
+      "game_identification": "inferred",
+      "scope": "stream_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/156",
+      "published_at": "2026-07-17T13:31:55+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=zgCB2cp8YWo",
+      "video_id": "zgCB2cp8YWo",
+      "game": null,
+      "game_identification": "unknown",
+      "scope": "stream_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/157",
+      "published_at": "2026-07-20T21:15:49+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=-H--c4FaCg0",
+      "video_id": "-H--c4FaCg0",
+      "game": "Carpet Cleaning Simulator",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/158",
+      "published_at": "2026-07-21T17:41:08+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=Q9X2jZPn5hA",
+      "video_id": "Q9X2jZPn5hA",
+      "game": "A Game About Chopping Trees",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/159",
+      "published_at": "2026-07-25T15:03:01+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=vRfR-W_R0EI",
+      "video_id": "vRfR-W_R0EI",
+      "game": "Lured In",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/160",
+      "published_at": "2026-07-27T07:10:34+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=yu5WQ1HtFs8",
+      "video_id": "yu5WQ1HtFs8",
+      "game": "Toy Shop Tidy Up",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/161",
+      "published_at": "2026-07-28T14:16:55+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=DLcmJWurKRc",
+      "video_id": "DLcmJWurKRc",
+      "game": "Garbage Grove",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/162",
+      "published_at": "2026-07-30T15:27:55+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=umTY6rOim64",
+      "video_id": "umTY6rOim64",
+      "game": "Gamblers Table",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/163",
+      "published_at": "2026-07-31T08:24:42+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=CFsoxCUd8Yk",
+      "video_id": "CFsoxCUd8Yk",
+      "game": "Bills Must Be Paid",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/165",
+      "published_at": "2026-08-01T12:00:23+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=jhLXPhATuGU",
+      "video_id": "jhLXPhATuGU",
+      "game": "TV Archive Tidy Up Together",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/167",
+      "published_at": "2026-08-02T18:15:30+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=3SzstuCsr5o",
+      "video_id": "3SzstuCsr5o",
+      "game": "Sir, We Have an Orc Problem",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/168",
+      "published_at": "2026-08-04T19:02:10+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=6P5kZp7ydZE",
+      "video_id": "6P5kZp7ydZE",
+      "game": "Cellar Keeper",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/170",
+      "published_at": "2026-08-05T14:11:11+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=iHdSNtrSRPw",
+      "video_id": "iHdSNtrSRPw",
+      "game": "Slot Grind",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/171",
+      "published_at": "2026-08-08T13:33:23+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=MeOWyL0L48w",
+      "video_id": "MeOWyL0L48w",
+      "game": "Ship Graveyard Simulator 2",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/172",
+      "published_at": "2026-08-09T21:31:51+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=VQqhEBUReso",
+      "video_id": "VQqhEBUReso",
+      "game": "Smash Hit Museum",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/173",
+      "published_at": "2026-08-12T09:34:13+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=NrBdYQmr4MY",
+      "video_id": "NrBdYQmr4MY",
+      "game": "ReStory Chill Electronics Repairs",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/174",
+      "published_at": "2026-08-18T21:41:57+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=lFFYoKHXTrQ",
+      "video_id": "lFFYoKHXTrQ",
+      "game": "Scratch the Ticket",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/175",
+      "published_at": "2026-08-22T14:01:03+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=o_Tiu1o0Ekk",
+      "video_id": "o_Tiu1o0Ekk",
+      "game": "Hole Is Mine",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/177",
+      "published_at": "2026-08-24T05:36:12+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=Qcx6fjXj3tQ",
+      "video_id": "Qcx6fjXj3tQ",
+      "game": "KOTAMON",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/180",
+      "published_at": "2026-08-27T05:09:23+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=dYBYubM2am4",
+      "video_id": "dYBYubM2am4",
+      "game": "How to Fish",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/183",
+      "published_at": "2026-09-03T19:34:03+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=G-kC92yXGxI",
+      "video_id": "G-kC92yXGxI",
+      "game": "Farming Incremental But With Guns",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/184",
+      "published_at": "2026-09-06T18:27:15+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=VQiBqXWmlww",
+      "video_id": "VQiBqXWmlww",
+      "game": "Project P.I.T.T.",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/185",
+      "published_at": "2026-09-11T16:36:28+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=RE_dcfupNv4",
+      "video_id": "RE_dcfupNv4",
+      "game": "Scarlet Skips",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/186",
+      "published_at": "2026-09-20T17:33:04+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=DBDKU5WPw8M",
+      "video_id": "DBDKU5WPw8M",
+      "game": "Chop Chop Inc.",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/189",
+      "published_at": "2026-10-03T09:07:00+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=6cXcA-dmb7U",
+      "video_id": "6cXcA-dmb7U",
+      "game": "Find The Needle",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/192",
+      "published_at": "2026-10-12T15:02:55+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=ku800kOZhbc",
+      "video_id": "ku800kOZhbc",
+      "game": "Cheap Car Repair",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/193",
+      "published_at": "2026-10-16T18:19:38+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=7V6EeiUhth4",
+      "video_id": "7V6EeiUhth4",
+      "game": "Family Time",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/195",
+      "published_at": "2026-10-17T13:16:35+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=8Aa0Y0ZVs-g",
+      "video_id": "8Aa0Y0ZVs-g",
+      "game": "One Million Coins",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/196",
+      "published_at": "2026-10-21T15:55:45+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=_2QMkOZS8H4",
+      "video_id": "_2QMkOZS8H4",
+      "game": "Find The Needle",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/197",
+      "published_at": "2026-10-25T17:20:11+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=9PmFglKgkYo",
+      "video_id": "9PmFglKgkYo",
+      "game": "Rock Bottom",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/198",
+      "published_at": "2026-10-27T19:36:20+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=vmjq9M0FVBs",
+      "video_id": "vmjq9M0FVBs",
+      "game": "Moon Sweepers",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/199",
+      "published_at": "2026-10-29T20:18:29+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=IJ2NGEMtpCY",
+      "video_id": "IJ2NGEMtpCY",
+      "game": "Moon Sweepers",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/200",
+      "published_at": "2026-11-01T16:32:42+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=lR4ChwA7IM4",
+      "video_id": "lR4ChwA7IM4",
+      "game": "Leaf Blower Co.",
+      "game_identification": "inferred",
+      "scope": "stream_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/202",
+      "published_at": "2026-11-04T15:46:15+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=vs8Ihiwa6Q4",
+      "video_id": "vs8Ihiwa6Q4",
+      "game": "Potato Please",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/204",
+      "published_at": "2026-11-06T16:59:18+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=1AOnDb5WkJE",
+      "video_id": "1AOnDb5WkJE",
+      "game": "CRACK",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/218",
+      "published_at": "2026-11-12T21:15:02+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=zBX5tEeLqsk",
+      "video_id": "zBX5tEeLqsk",
+      "game": "Can ’Em All",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/219",
+      "published_at": "2026-11-19T08:42:08+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=UwJXPwWFOdQ",
+      "video_id": "UwJXPwWFOdQ",
+      "game": "Playrooms",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/221",
+      "published_at": "2026-11-20T10:51:15+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=1BI1ycRvGzc",
+      "video_id": "1BI1ycRvGzc",
+      "game": "Drink The Ocean",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/222",
+      "published_at": "2026-11-21T22:04:29+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=SYFlP9l1aDg",
+      "video_id": "SYFlP9l1aDg",
+      "game": "One More Lawn",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/224",
+      "published_at": "2026-11-24T16:03:49+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=kRSG0d3w8fc",
+      "video_id": "kRSG0d3w8fc",
+      "game": "How They Built the Pyramids",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/225",
+      "published_at": "2026-11-25T13:55:41+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=rlAc2os_Wyo",
+      "video_id": "rlAc2os_Wyo",
+      "game": "Punch the Walls",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    },
+    {
+      "post": "https://t.me/sdnevka/226",
+      "published_at": "2026-11-26T08:53:30+00:00",
+      "youtube_url": "https://www.youtube.com/watch?v=lrsnqhi06DQ",
+      "video_id": "lrsnqhi06DQ",
+      "game": "Mycelarium",
+      "game_identification": "explicit",
+      "scope": "author_announcement"
+    }
+  ]
+}

@@ -1,47 +1,37 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#142d31">
-  <meta name="description" content="Верните движение забытому механическому городу. Небольшая игра о ремонте, выборе и одном повороте ключа.">
-  <title>Город на пружине — мастерская</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect rx='14' width='64' height='64' fill='%23142d31'/%3E%3Ctext x='32' y='46' text-anchor='middle' font-size='44' fill='%23e2b56b'%3E⚙%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#254e52"><meta name="description" content="Большой вдох — короткая 3D-проба спокойной игры о восстановлении надувного парка.">
+<title>Большой вдох · 3D-проба</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%232b6262'/%3E%3Cpath d='M10 25c0-14 20-14 20 0' fill='none' stroke='%23f7d38a' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<main id="game">
-  <header class="topbar">
-    <a class="brand" href="#" aria-label="Город на пружине"><span class="brand-icon">⚙</span><span><strong>Город на пружине</strong><small>Мастерская • Нижний порт</small></span></a>
-    <div class="top-actions"><div class="restored"><span id="restore-count">0 / 3</span><span>механизма восстановлено</span></div><button class="icon-btn" id="sound" aria-label="Включить звук" title="Звук">♫<span class="slash"></span></button><button class="icon-btn" id="help" aria-label="Как играть" title="Как играть">?</button><button class="icon-btn" id="menu" aria-label="Настройки игры" title="Настройки игры">☰</button></div>
+<canvas id="world" tabindex="0" aria-label="Трёхмерный надувной парк. WASD — ходить, мышь — смотреть, левая кнопка — надувать."></canvas>
+<div id="loading">Открываем парк…</div>
+<div id="error" hidden><h1>Не удалось открыть 3D-парк</h1><p id="error-message">Для прототипа нужен браузер с WebGL 2.</p><button onclick="location.reload()">Попробовать ещё раз</button></div>
+<div id="hud" hidden>
+  <header>
+    <div class="brand"><span class="brand-symbol">◜◝</span><div><strong>Большой вдох</strong><small>3D-проба идеи</small></div></div>
+    <div class="top-actions"><button id="sound" class="icon-button" aria-label="Включить звук" aria-pressed="false">Звук: выкл.</button><button id="pause-button" class="icon-button">Пауза <kbd>Esc</kbd></button></div>
   </header>
-  <section class="play-area">
-    <div class="world">
-      <canvas id="town" aria-label="Механический город. Выберите объект мышью или кнопками Поезд, Кран, Мельница ниже."></canvas>
-      <div class="chapter-label"><span class="eyebrow">История одного механизма</span><h1>Здесь снова<br>будет движение.</h1><p id="objective">Смахните пыль с крана.<br>Зажмите мышь и проведите по нему.</p></div>
-      <div id="world-alert" class="world-alert" hidden></div>
-      <div class="scene-footer"><span class="save-status" id="save-status">Прогресс сохраняется автоматически</span><span class="scene-note">Нижний порт · пробный эпизод</span></div>
-      <div class="world-tabs" aria-label="Выбрать механизм"><button data-select="train">Поезд</button><button data-select="crane" class="selected">Кран</button><button data-select="mill">Мельница</button></div>
-    </div>
-    <aside class="inspector">
-      <div class="inspector-head"><span class="eyebrow">На верстаке</span><span id="machine-tag" class="tag">Нужен уход</span></div>
-      <div class="machine-heading"><span id="machine-icon" class="machine-icon">⌁</span><div><h2 id="machine-name">Портовый кран</h2><p id="machine-description">Освободит пристань от старых ящиков.</p></div></div>
-      <div class="repair-card"><div class="row"><strong id="repair-label">Очистка корпуса</strong><span id="clean-value">0%</span></div><div class="progress-track"><div id="clean-bar"></div></div><p id="action-hint">Выберите щётку и проведите по механизму.</p><button id="repair" class="secondary full" disabled>Установить шестерню</button></div>
-      <div class="section-title">Привод <span id="machine-load">4 ед.</span></div>
-      <button id="connect" class="connect-card" disabled><span class="plug-icon">⌁</span><span><strong id="connection-label">Подключить ремень</strong><small id="connection-hint">Сначала восстановите механизм</small></span><span id="connection-toggle" class="switch"></span></button>
-      <div class="section-title">Одна деталь — два решения</div>
-      <button id="reducer" class="part-card"><span class="part-icon">⚙</span><span><strong>Латунный редуктор</strong><small id="reducer-description">Снижает нагрузку на 2 единицы</small></span><span id="reducer-location">На полке</span></button>
-      <p class="quiet-note" id="reducer-hint">Можно поставить на поезд или кран. Переставляйте свободно.</p>
-      <div class="tasks"><div class="section-title">Вернуть порту жизнь <span id="tasks-count">0 / 3</span></div><div class="task"><span>Расчистить пристань</span><span id="harbor-value">0%</span><div class="mini-track"><i id="harbor-bar"></i></div></div><div class="task"><span>Доставить детали</span><span id="cargo-value">0%</span><div class="mini-track"><i id="cargo-bar"></i></div></div><div class="task"><span>Отполировать детали</span><span id="polished-value">0%</span><div class="mini-track"><i id="polished-bar"></i></div></div></div>
-      <button class="mode-card" id="mode" disabled><span id="mode-icon">◇</span><span><strong id="mode-title">Переключатель закрыт</strong><small id="mode-description">Расчистите пристань или доставьте детали</small></span></button>
-    </aside>
-  </section>
-  <footer class="workbench"><div class="tools" aria-label="Инструменты"><button class="tool active" data-tool="brush" aria-pressed="true"><span class="tool-graphic brush-graphic">▰</span><span>Щётка<kbd>1</kbd></span></button><button class="tool" data-tool="wrench" aria-pressed="false"><span class="tool-graphic">⚒</span><span>Ремонт<kbd>2</kbd></span></button><button class="tool" data-tool="belt" aria-pressed="false"><span class="tool-graphic">∞</span><span>Ремень<kbd>3</kbd></span></button><div class="toolbar-divider"></div><button class="undo" id="undo" disabled title="Отменить последнее действие">↶<span>Отменить</span></button></div><div class="spring"><div class="spring-label"><strong>Заводная пружина</strong><span id="load-label">0 / 6</span></div><div class="power-meter" id="power-meter"><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="power-note">Подключите восстановленный механизм</span></div><button id="run" class="run"><span class="key-symbol">⚿</span><span><strong>Завести город</strong><small>Пробел</small></span></button></footer>
-</main>
-<div id="toast" role="status" aria-live="polite"></div>
-<dialog id="help-dialog"><button class="close" aria-label="Закрыть">×</button><span class="eyebrow">Письмо из мастерской</span><h2>Порт давно молчал.<br>Начнём с малого.</h2><p>Три механизма, одна пружина — и несколько способов вернуть всё в движение.</p><ol><li><strong>Очистите.</strong> Возьмите щётку и зажмите мышь, двигая её по крану, поезду или мельнице.</li><li><strong>Почините.</strong> Установите шестерню кнопкой на верстаке или инструментом «Ремонт».</li><li><strong>Подключите.</strong> Наденьте ремень. Пружина выдерживает 6 единиц нагрузки.</li><li><strong>Экспериментируйте.</strong> Переставьте редуктор на поезд или кран. Первый завершённый заказ откроет работу по очереди.</li></ol><p class="dialog-note">Все действия обратимы. Перегрузка ничего не ломает. Соберите, подключите и завершите задачи всех трёх механизмов.</p><button class="primary full close-action">За работу</button></dialog>
-<dialog id="menu-dialog"><button class="close" aria-label="Закрыть">×</button><span class="eyebrow">Мастерская</span><h2>Небольшой перерыв</h2><p>Прогресс хранится в этом браузере. Можно продолжить в любой момент.</p><button class="secondary full" id="reset">Начать новый эпизод</button><p id="reset-warning" hidden>Начать заново? Текущий прогресс будет сброшен.</p><button id="confirm-reset" class="danger full" hidden>Да, начать заново</button><button class="primary full close-action">Продолжить</button></dialog>
-<dialog id="win-dialog"><button class="close" aria-label="Закрыть">×</button><span class="win-medal">⚙</span><span class="eyebrow">Нижний порт снова живёт</span><h2>Один ключ.<br>Целый маленький мир.</h2><p>Кран освободил пристань, поезд привёз детали, мельница вернула им блеск. Вы собрали работающий город.</p><p id="win-stats" class="dialog-note"></p><button class="primary full close-action">Попробовать другую схему</button><button class="text-btn" id="win-reset">Начать с чистого верстака</button></dialog>
-<script type="module" src="app.js"></script>
-</body>
-</html>
+  <section class="park-status" aria-label="Прогресс парка"><div class="eyebrow">ПАРК ВОЗВРАЩАЕТСЯ К ЖИЗНИ</div><div><strong id="completed">0</strong><span id="total">/ 27 форм</span><b id="percent">0%</b></div><div class="track"><i id="park-bar"></i></div><p id="chapter">Дворик · начните с маленькой уточки</p></section>
+  <div id="reticle" aria-hidden="true"><span></span></div>
+  <section id="target" hidden><span id="target-name"></span><b id="target-percent"></b><div class="track"><i id="target-bar"></i></div></section>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <section class="tool-panel"><div class="eyebrow">ВАШ ИНСТРУМЕНТ</div><h2 id="tool-name">Карманный насос</h2><div class="tool-stats"><span><strong id="flow">4</strong> л/с</span><span><strong id="power">×1</strong> мощность</span><span id="targets">1 цель</span></div><div class="upgrade-row"><div><small>Билеты за восстановление</small><b id="credits">0</b></div><button id="upgrade" disabled><span id="upgrade-label">Усилить поток ×3</span><small id="upgrade-cost">40 билетов · E</small></button></div><p id="next-tool">Дальше: воздушная насадка</p></section>
+  <div class="bottom-help"><span><kbd>WASD</kbd> ходить</span><span><kbd>Мышь</kbd> смотреть</span><span><kbd>ЛКМ</kbd> надувать</span><span><kbd>F</kbd> поток вкл./выкл.</span><span id="save-status">Сохранение на устройстве</span></div>
+  <div class="touch-move" aria-label="Ходьба"><button data-move="KeyW" aria-label="Вперёд">▲</button><div><button data-move="KeyA" aria-label="Влево">◀</button><button data-move="KeyS" aria-label="Назад">▼</button><button data-move="KeyD" aria-label="Вправо">▶</button></div></div>
+  <button id="pump" aria-pressed="false">Включить поток <kbd>F</kbd></button>
+</div>
+<section id="intro" class="overlay">
+  <div class="intro-copy"><div class="eyebrow">ТИХОЕ ЛЕТО. БОЛЬШИЕ ПЕРЕМЕНЫ.</div><h1>Большой<br><em>вдох.</em></h1><p>Здесь всё немного сдулось.<br>Верните парку его форму.</p><button id="start" class="primary" disabled>Загружаем 3D…</button><div class="intro-note">Один простой жест.<br>Всё более впечатляющий результат.</div></div>
+  <div class="intro-bottom"><span>Короткий прототип механики</span><span>3D · от первого лица · без спешки</span></div>
+</section>
+<section id="pause" class="modal-layer" hidden>
+  <div class="modal"><div class="eyebrow">МОЖНО ВЫДОХНУТЬ</div><h1>Парк подождёт.</h1><p>Ваш прогресс остаётся на этом устройстве.</p><div class="instructions"><p><kbd>W A S D</kbd> — ходить · <kbd>Shift</kbd> — быстрее</p><p><kbd>Мышь</kbd> — осмотреться · <kbd>ЛКМ</kbd> — надувать</p><p><kbd>F</kbd> — постоянный поток · <kbd>E</kbd> — улучшение</p><p>Если захват мыши недоступен: тяните сцену правой кнопкой. Стрелки клавиатуры тоже поворачивают взгляд.</p></div><label class="option"><input type="checkbox" id="reduce-motion"> Уменьшить движение и частицы</label><label class="option">Чувствительность мыши <input id="sensitivity" type="range" min="0.5" max="2" step="0.1" value="1"></label><button id="resume" class="primary">Вернуться в парк</button><button id="reset" class="text-button">Начать заново…</button><div id="reset-confirm" hidden><p>Сбросить сохранённый прогресс этой 3D-пробы?</p><button id="reset-yes">Да, начать сначала</button><button id="reset-no">Отмена</button></div></div>
+</section>
+<section id="finish" class="modal-layer" hidden><div class="modal"><div class="eyebrow">ВЫ ВЕРНУЛИ ЕМУ ЛЕТО</div><h1>Парк снова дышит.</h1><p>От одной уточки до облачного корабля.<br>Ваша насадка стала в <strong>729 раз</strong> мощнее.</p><p class="fine">Это конец короткой пробы. Полная игра с новыми площадками и многочасовым развитием пока только в проекте.</p><button id="explore" class="primary">Прогуляться по парку</button><button id="finish-pause" class="text-button">Меню</button></div></section>
+<script type="module" src="./app.js"></script>
+</body></html>

@@ -1,8 +1,12 @@
 {
-  "name": "springtown-prototype",
+  "name": "big-breath-prototype",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/engine.test.mjs"
+    "test": "node --test tests/engine.test.mjs",
+    "vendor": "node scripts/vendor.mjs"
+  },
+  "dependencies": {
+    "three": "0.187.0"
   }
 }

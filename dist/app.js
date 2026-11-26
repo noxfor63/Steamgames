@@ -1,245 +1,99 @@
-import { newGame, act, derive, tick } from './engine.js';
-import { TownScene } from './scene.js';
-
-const $ = id => document.getElementById(id);
-const SAVE_KEY = 'springtown.port.v1';
-const metadata = {
-  train: { name: 'Заводной поезд', desc: 'Доставит детали с дальнего склада.', icon: '▤' },
-  crane: { name: 'Портовый кран', desc: 'Освободит пристань от старых ящиков.', icon: '⌁' },
-  mill: { name: 'Старая мельница', desc: 'Отполирует детали в своём барабане.', icon: '✣' },
-};
-let state = newGame(), selected = 'crane', tool = 'brush', history = [], pointer = null;
-let soundEnabled = false, audio = null, toastTimer, lastFrame = performance.now(), lastUI = 0, lastSave = 0;
-let announcedUnlock = false, shownWin = false, previousCompleted = false, storageAvailable = true;
-let stroke = null, lastBrushSound = 0;
-try {
-  const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-  if (saved?.version === 1) state = tick(saved, 0);
-  state.running = false;
-  announcedUnlock = derive(state).unlockedAlternating;
-  shownWin = state.everCompleted;
-  previousCompleted = derive(state).completed;
-} catch { /* A missing or outdated save simply starts a new workshop. */ }
-const canvas = $('town');
-const scene = new TownScene(canvas, id => select(id));
-
-function toast(message) {
-  if (!message) return;
-  $('toast').textContent = message;
-  $('toast').classList.add('visible');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => $('toast').classList.remove('visible'), 3900);
+import {newGame, derive, act, tick, restoreSave, selectTargets, OBJECTS} from './engine.js';
+import {createScene} from './scene.js';
+const $=id=>document.getElementById(id), canvas=$('world');
+const SAVE='big-breath-prototype-v2', SETTINGS='big-breath-settings-v1';
+let state=newGame(),settings={sound:false,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,sensitivity:1};
+try{state=restoreSave(JSON.parse(localStorage.getItem(SAVE)));Object.assign(settings,JSON.parse(localStorage.getItem(SETTINGS))||{});}catch{}
+settings.sound=settings.sound===true;settings.reduced=settings.reduced===true;
+settings.sensitivity=Number.isFinite(settings.sensitivity)?Math.max(.5,Math.min(2,settings.sensitivity)):1;
+let world;
+try{world=createScene(canvas);world.resize();$('loading').hidden=true;$('start').disabled=false;$('start').textContent=derive(state).volume>0?'Продолжить прогулку':'Вернуть парку лето';}
+catch(error){$('loading').hidden=true;$('intro').hidden=true;$('error').hidden=false;$('error-message').textContent='Не удалось запустить WebGL 2. Проверьте аппаратное ускорение браузера. '+error.message;throw error;}
+let playing=false,paused=false,holding=false,togglePump=false,dragging=false,targets=[],wasComplete=derive(state).completed,finishShown=derive(state).finished;
+let hadPointerLock=false;
+const keys=new Set();let last=performance.now(),time=0,lastSave=0,lastHUD=0,toastTimer;
+let audioContext,wind,windGain,audioEnabled=false;
+const format=n=>new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(n);
+function save(){try{localStorage.setItem(SAVE,JSON.stringify(state));localStorage.setItem(SETTINGS,JSON.stringify(settings));$('save-status').textContent='Прогресс сохранён';}catch{$('save-status').textContent='Хранилище недоступно';}}
+function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3500);}
+function initializeAudio(){
+  if(audioContext)return;
+  try{
+    audioContext=new (window.AudioContext||window.webkitAudioContext)();
+    const buffer=audioContext.createBuffer(1,audioContext.sampleRate*2,audioContext.sampleRate),data=buffer.getChannelData(0);
+    for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.4;
+    wind=audioContext.createBufferSource();wind.buffer=buffer;wind.loop=true;
+    const filter=audioContext.createBiquadFilter();filter.type='lowpass';filter.frequency.value=650;
+    windGain=audioContext.createGain();windGain.gain.value=0;wind.connect(filter);filter.connect(windGain);windGain.connect(audioContext.destination);wind.start();
+  }catch{audioEnabled=false;}
 }
-function tone(frequency = 440, duration = .08, volume = .035) {
-  if (!soundEnabled) return;
-  try {
-    audio ||= new (window.AudioContext || window.webkitAudioContext)();
-    if (audio.state === 'suspended') audio.resume();
-    const oscillator = audio.createOscillator(), gain = audio.createGain();
-    oscillator.type = 'sine'; oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(volume, audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + duration);
-    oscillator.connect(gain); gain.connect(audio.destination);
-    oscillator.start(); oscillator.stop(audio.currentTime + duration);
-  } catch { soundEnabled = false; }
-}
-function save() {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
-  catch {
-    storageAvailable = false;
-    $('save-status').textContent = 'Сохранение недоступно в этом браузере';
-  }
-}
-function remember() {
-  history.push(structuredClone(state));
-  if (history.length > 30) history.shift();
-}
-function action(type, payload = {}, options = {}) {
-  const result = act(state, type, payload);
-  if (result.changed) {
-    if (!options.noHistory) remember();
-    state = result.state;
-    if (type !== 'clean') tone(type === 'repair' ? 660 : 390, .13);
-    if (type !== 'clean' || result.message) save();
-  }
-  if (!options.silent) toast(result.message);
-  updateUI();
-  return result;
-}
-function select(id) {
-  if (!metadata[id]) return;
-  selected = id; updateUI();
-}
-function chooseTool(next) {
-  tool = next;
-  document.querySelectorAll('[data-tool]').forEach(button => {
-    const active = button.dataset.tool === tool;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-  canvas.style.cursor = tool === 'brush' ? 'crosshair' : 'pointer';
-  updateUI();
-}
-function setText(id, text) { if ($(id).textContent !== text) $(id).textContent = text; }
-function objective(d) {
-  if (d.completed) return 'Порт снова живёт. Попробуйте переставить редуктор и собрать другую схему.';
-  if (d.overloaded) return 'Пружина перегружена. Отключите один механизм или включите работу по очереди.';
-  const dirty = Object.keys(metadata).find(id => state.machines[id].clean < 1);
-  const unrepaired = Object.keys(metadata).find(id => !state.machines[id].repaired);
-  if (d.restoredCount === 0) return 'Смахните пыль с механизма. Зажмите мышь и проведите по нему щёткой.';
-  if (!d.unlockedAlternating && !d.connected.length) return 'Подключите поезд или кран ремнём. Первый заказ откроет переключатель.';
-  if (d.connected.length && !state.running) return 'Поверните ключ «Завести город» и наблюдайте за работой механизма.';
-  if (!d.unlockedAlternating && state.running) return 'Первая работа уже идёт. Пока механизм занят, можно восстановить остальные.';
-  if (dirty) return `Теперь очистите ${dirty === 'train' ? 'поезд' : dirty === 'crane' ? 'кран' : 'мельницу'}. Переключатель уже доступен.`;
-  if (unrepaired) return 'Установите шестерни во все очищенные механизмы.';
-  if (state.mode === 'direct') return 'Включите переключатель: поезд и кран будут работать по очереди.';
-  if (d.connected.length < 3) return 'Подключите все три механизма и завершите работу порта.';
-  return 'Ваша схема работает. Дождитесь завершения трёх заказов.';
-}
-function updateUI() {
-  const m = state.machines[selected], data = metadata[selected], d = derive(state);
-  setText('restore-count', `${d.restoredCount} / 3`);
-  setText('machine-name', data.name); setText('machine-description', data.desc); setText('machine-icon', data.icon);
-  setText('machine-tag', m.repaired ? 'Восстановлен' : m.clean >= 1 ? 'Готов к ремонту' : 'Нужен уход');
-  $('machine-tag').classList.toggle('ready', m.repaired);
-  setText('clean-value', `${Math.round(m.clean * 100)}%`); $('clean-bar').style.width = `${m.clean * 100}%`;
-  setText('repair-label', m.repaired ? 'Механизм восстановлен' : m.clean >= 1 ? 'Корпус очищен' : 'Очистка корпуса');
-  setText('action-hint', m.repaired ? 'Теперь соедините механизм с общей пружиной.' : m.clean >= 1 ? 'Шестерня готова. Установите её в механизм.' : 'Щёткой проведите по механизму, удерживая кнопку мыши.');
-  $('repair').disabled = m.clean < 1 || m.repaired;
-  setText('repair', m.repaired ? '✓ Шестерня установлена' : 'Установить шестерню');
-  $('connect').disabled = !m.repaired;
-  setText('machine-load', `${d.loads[selected]} ед.`);
-  setText('connection-label', m.connected ? 'Ремень подключён' : 'Подключить ремень');
-  setText('connection-hint', !m.repaired ? 'Сначала восстановите механизм' : m.connected ? 'Нажмите, чтобы отключить' : `Нагрузка: ${d.loads[selected]} из ${d.capacity}`);
-  $('connection-toggle').classList.toggle('on', m.connected);
-  $('connect').setAttribute('aria-pressed', String(m.connected));
-  $('reducer').disabled = selected === 'mill';
-  setText('reducer-location', state.reducer ? (state.reducer === 'train' ? 'На поезде' : 'На кране') : 'На полке');
-  setText('reducer-description', state.reducer === selected ? 'Нажмите, чтобы снять деталь' : 'Снижает нагрузку на 2 единицы');
-  setText('reducer-hint', selected === 'mill' ? 'Эта деталь подходит поезду или крану. Выберите один из них.' : state.reducer && state.reducer !== selected ? 'Нажмите, чтобы перенести редуктор сюда. Старое подключение сохранится.' : 'Можно поставить на поезд или кран. Переставляйте свободно.');
-  let done = 0;
-  for (const job of ['harbor', 'cargo', 'polished']) {
-    const value = state[job];
-    if (value >= 100) done++;
-    setText(`${job}-value`, value >= 100 ? '✓ Готово' : `${Math.floor(value)}%`);
-    $(`${job}-bar`).style.width = `${value}%`;
-  }
-  setText('tasks-count', `${done} / 3`);
-  $('mode').disabled = !d.unlockedAlternating;
-  $('mode').classList.toggle('active', state.mode === 'alternating');
-  $('mode').setAttribute('aria-pressed', String(state.mode === 'alternating'));
-  setText('mode-title', !d.unlockedAlternating ? 'Переключатель закрыт' : state.mode === 'alternating' ? 'Работают по очереди' : 'Включить работу по очереди');
-  setText('mode-description', !d.unlockedAlternating ? 'Расчистите пристань или доставьте детали' : state.mode === 'alternating' ? 'Нажмите для одновременной работы' : 'Поезд и кран сменяют друг друга');
-  setText('mode-icon', state.mode === 'alternating' ? '⇄' : '◇');
-  setText('load-label', `${d.totalLoad} / ${d.capacity}`);
-  $('power-meter').classList.toggle('danger', d.overloaded);
-  [...$('power-meter').children].forEach((node, i) => node.classList.toggle('lit', i < d.totalLoad));
-  setText('power-note', d.overloaded ? 'Перегрузка — отключите часть привода' : state.mode === 'alternating' ? `Сейчас работает ${d.phase === 0 ? 'поезд' : 'кран'} и подключённая мельница` : !d.connected.length ? 'Подключите восстановленный механизм' : state.running ? 'Привод работает ровно' : 'Можно заводить');
-  $('run').classList.toggle('active', state.running);
-  $('run').querySelector('strong').textContent = state.running ? 'Остановить привод' : 'Завести город';
-  $('run').setAttribute('aria-pressed', String(state.running));
-  $('undo').disabled = history.length === 0;
-  setText('objective', objective(d));
-  $('world-alert').hidden = !d.overloaded;
-  setText('world-alert', `Пружине тяжело: ${d.totalLoad} / 6. ${d.unlockedAlternating ? 'Включите работу по очереди.' : 'Отключите один механизм или переставьте редуктор.'}`);
-  document.querySelectorAll('[data-select]').forEach(button => {
-    button.classList.toggle('selected', button.dataset.select === selected);
-    button.setAttribute('aria-pressed', String(button.dataset.select === selected));
-  });
-  if (d.unlockedAlternating && !announcedUnlock) {
-    announcedUnlock = true;
-    toast('В ящике нашёлся переключатель! Теперь поезд и кран могут работать по очереди.');
-    tone(780, .25);
-  }
-  if (d.completed && !previousCompleted && !shownWin) {
-    shownWin = true; save();
-    const minutes = Math.max(1, Math.round(state.totalPlay / 60));
-    setText('win-stats', `Порт восстановлен за ${minutes} мин. Редуктор: ${state.reducer ? (state.reducer === 'train' ? 'на поезде' : 'на кране') : 'на полке'}. Все детали можно переставить.`);
-    $('win-dialog').showModal(); tone(880, .5);
-  }
-  previousCompleted = d.completed;
-}
-
-document.querySelectorAll('[data-select]').forEach(button => button.addEventListener('click', () => select(button.dataset.select)));
-document.querySelectorAll('[data-tool]').forEach(button => button.addEventListener('click', () => chooseTool(button.dataset.tool)));
-$('repair').addEventListener('click', () => action('repair', { id: selected }));
-$('connect').addEventListener('click', () => action('connect', { id: selected }));
-$('reducer').addEventListener('click', () => action('reducer', { id: state.reducer === selected ? null : selected }));
-$('mode').addEventListener('click', () => action('mode', { mode: state.mode === 'direct' ? 'alternating' : 'direct' }));
-$('run').addEventListener('click', () => {
-  if (!state.running && !derive(state).connected.length) { toast('Сначала восстановите и подключите хотя бы один механизм.'); return; }
-  action('toggleRun');
+function chime(){if(!audioContext||!audioEnabled)return;for(let i=0;i<3;i++){const osc=audioContext.createOscillator(),gain=audioContext.createGain(),t=audioContext.currentTime+i*.09;osc.type='sine';osc.frequency.value=[523.25,659.25,783.99][i];gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(.055,t+.015);gain.gain.exponentialRampToValueAtTime(.001,t+.7);osc.connect(gain);gain.connect(audioContext.destination);osc.start(t);osc.stop(t+.72);}}
+function applySound(){audioEnabled=!!settings.sound;$('sound').textContent=audioEnabled?'Звук: вкл.':'Звук: выкл.';$('sound').setAttribute('aria-pressed',String(audioEnabled));$('sound').setAttribute('aria-label',audioEnabled?'Выключить звук':'Включить звук');if(audioEnabled){initializeAudio();audioContext?.resume().catch(()=>{});}}
+function lock(){if(matchMedia('(pointer:coarse)').matches)return;try{const p=canvas.requestPointerLock?.();p?.catch(()=>toast('Тяните сцену правой кнопкой для обзора. Стрелки тоже работают.'));}catch{toast('Тяните сцену правой кнопкой для обзора.');}}
+function release(){holding=false;togglePump=false;dragging=false;keys.clear();if(document.pointerLockElement)document.exitPointerLock();}
+function setPaused(value){paused=value;$('pause').hidden=!value;if(value){release();save();}else{canvas.focus();lock();}$('reset-confirm').hidden=true;}
+function upgrade(){const next=act(state,{type:'upgrade'});if(next!==state){state=next;chime();toast(`${derive(state).name}: поток ×${format(derive(state).multiplier)}`);save();updateHUD();}}
+function toggle(){if(!playing||paused)return;togglePump=!togglePump;updateHUD();}
+$('start').addEventListener('click',()=>{playing=true;$('intro').hidden=true;$('hud').hidden=false;applySound();canvas.focus();lock();toast('Направьте насадку на уточку и удерживайте левую кнопку.');});
+$('pause-button').onclick=()=>setPaused(true);$('resume').onclick=()=>setPaused(false);$('upgrade').onclick=upgrade;$('pump').onclick=toggle;
+$('sound').onclick=()=>{settings.sound=!settings.sound;applySound();save();};
+$('reduce-motion').checked=settings.reduced;$('reduce-motion').onchange=e=>{settings.reduced=e.target.checked;save();};
+$('sensitivity').value=settings.sensitivity;$('sensitivity').oninput=e=>{settings.sensitivity=Number(e.target.value);};
+$('reset').onclick=()=>{$('reset-confirm').hidden=false;};$('reset-no').onclick=()=>{$('reset-confirm').hidden=true;};
+$('reset-yes').onclick=()=>{state=newGame();wasComplete=0;finishShown=false;world.camera.position.set(0,1.8,18);world.camera.rotation.set(-.12,0,0,'YXZ');save();setPaused(false);updateHUD();};
+$('explore').onclick=()=>{$('finish').hidden=true;paused=false;canvas.focus();lock();};$('finish-pause').onclick=()=>{$('finish').hidden=true;setPaused(true);};
+window.addEventListener('keydown',e=>{
+  if(e.target instanceof HTMLInputElement || !playing)return;
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
+  if(e.code==='Escape'){e.preventDefault();if(!e.repeat)setPaused(!paused);return;}
+  if(paused)return;keys.add(e.code);
+  if(!e.repeat&&e.code==='KeyE')upgrade();if(!e.repeat&&e.code==='KeyF')toggle();
 });
-$('undo').addEventListener('click', () => {
-  if (!history.length) return;
-  state = history.pop(); save(); updateUI(); toast('Последнее действие отменено.');
-});
-$('sound').addEventListener('click', () => {
-  soundEnabled = !soundEnabled;
-  $('sound').querySelector('.slash').hidden = soundEnabled;
-  $('sound').setAttribute('aria-label', soundEnabled ? 'Выключить звук' : 'Включить звук');
-  tone(520, .18);
-});
-$('help').addEventListener('click', () => $('help-dialog').showModal());
-$('menu').addEventListener('click', () => { $('reset-warning').hidden = true; $('confirm-reset').hidden = true; $('menu-dialog').showModal(); });
-document.querySelectorAll('dialog').forEach(dialog => {
-  dialog.querySelectorAll('.close,.close-action').forEach(button => button.addEventListener('click', () => dialog.close()));
-  dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
-});
-$('reset').addEventListener('click', () => { $('reset-warning').hidden = false; $('confirm-reset').hidden = false; });
-function resetGame() {
-  state = newGame(); history = []; shownWin = false; announcedUnlock = false; previousCompleted = false;
-  selected = 'crane'; chooseTool('brush'); save(); updateUI();
-  document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
-  toast('Чистый верстак. Начните с любого механизма.');
+window.addEventListener('keyup',e=>keys.delete(e.code));
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('pointerdown',e=>{if(!playing||paused)return;canvas.focus();if(e.pointerType==='touch'||e.button===2){dragging=true;canvas.setPointerCapture(e.pointerId);}else if(e.button===0){holding=true;if(document.pointerLockElement!==canvas)lock();}});
+window.addEventListener('pointerup',()=>{holding=false;dragging=false;});
+window.addEventListener('pointercancel',()=>{holding=false;dragging=false;keys.clear();});
+document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===canvas;if(hadPointerLock&&!locked&&playing&&!paused&&$('finish').hidden)setPaused(true);hadPointerLock=locked;});
+let touchX=0,touchY=0;
+canvas.addEventListener('pointerdown',e=>{touchX=e.clientX;touchY=e.clientY;});
+window.addEventListener('pointermove',e=>{if(!playing||paused)return;if(document.pointerLockElement===canvas||dragging){let dx=e.movementX,dy=e.movementY;if(e.pointerType==='touch'){dx=e.clientX-touchX;dy=e.clientY-touchY;touchX=e.clientX;touchY=e.clientY;}world.camera.rotation.y-=dx*.002*settings.sensitivity;world.camera.rotation.x=Math.max(-1.25,Math.min(1.25,world.camera.rotation.x-dy*.002*settings.sensitivity));}});
+for(const b of document.querySelectorAll('[data-move]')){b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.move);});for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,()=>keys.delete(b.dataset.move));}
+window.addEventListener('blur',()=>{if(playing&&!paused)setPaused(true);});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing){setPaused(true);save();}});
+window.addEventListener('pagehide',save);window.addEventListener('resize',()=>world.resize());
+canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();save();release();playing=false;$('error').hidden=false;$('error-message').textContent='3D-контекст был потерян. Прогресс сохранён; перезагрузите страницу.';});
+function updateHUD(){
+  const s=derive(state);$('completed').textContent=s.completed;$('total').textContent=`/ ${s.total} форм`;$('percent').textContent=`${Math.floor(s.progress*100)}%`;$('park-bar').style.width=`${s.progress*100}%`;
+  $('tool-name').textContent=s.name;$('flow').textContent=format(s.flow);$('power').textContent=`×${format(s.multiplier)}`;$('targets').textContent=`До ${s.targets} целей`;$('credits').textContent=format(state.credits);
+  $('upgrade').disabled=!s.next||state.credits<s.next.cost;$('upgrade-label').textContent=s.next?'Усилить поток ×3':'Максимальная мощность';$('upgrade-cost').textContent=s.next?`${format(s.next.cost)} билетов · E`:'Все улучшения открыты';
+  $('next-tool').textContent=s.next?`Дальше: ${s.next.name.toLowerCase()} · до ${s.next.targets} целей`:'Один поток поднимает целую площадку.';
+  $('pump').setAttribute('aria-pressed',String(togglePump));$('pump').innerHTML=`${togglePump?'Выключить поток':'Включить поток'} <kbd>F</kbd>`;
+  const z=world.camera.position.z;$('chapter').textContent=z>-8?'Дворик · всё начинается с уточки':z>-29?'Лагуна · пусть лето станет больше':'Парад · поднимите облачный корабль';
+  const o=targets.length?OBJECTS[Number(targets[0])]:null;$('target').hidden=!o;
+  if(o){const p=state.filled[Number(o.id)]/o.capacity;$('target-name').textContent=targets.length>1?`${o.name} + ${targets.length-1}`:o.name;$('target-percent').textContent=`${Math.floor(p*100)}%`;$('target-bar').style.width=`${p*100}%`;}
 }
-$('confirm-reset').addEventListener('click', resetGame);
-$('win-reset').addEventListener('click', () => { $('win-dialog').close(); $('menu-dialog').showModal(); $('reset-warning').hidden = false; $('confirm-reset').hidden = false; });
-
-canvas.addEventListener('pointerdown', event => {
-  if (event.button !== 0) return;
-  const id = scene.hitTest(event.clientX, event.clientY);
-  if (!id) return;
-  select(id);
-  if (tool === 'wrench') { action('repair', { id }); return; }
-  if (tool === 'belt') { action('connect', { id }); return; }
-  if (state.machines[id].clean >= 1) { toast(state.machines[id].repaired ? 'Механизм чист и восстановлен. Можно подключать ремень.' : 'Уже чисто. Теперь установите шестерню.'); return; }
-  remember();
-  stroke = { id, x: event.clientX, y: event.clientY };
-  canvas.setPointerCapture(event.pointerId);
-  action('clean', { id, amount: .015 }, { noHistory: true, silent: true });
-});
-canvas.addEventListener('pointermove', event => {
-  pointer = { x: event.clientX, y: event.clientY, active: !!stroke };
-  if (!stroke) return;
-  const distance = Math.hypot(event.clientX - stroke.x, event.clientY - stroke.y);
-  const id = scene.hitTest(event.clientX, event.clientY);
-  if (id === stroke.id && distance > 1) {
-    action('clean', { id, amount: Math.min(distance, 60) * .00075 }, { noHistory: true });
-    if (performance.now() - lastBrushSound > 130) { tone(180 + Math.random() * 160, .025, .008); lastBrushSound = performance.now(); }
-  }
-  stroke.x = event.clientX; stroke.y = event.clientY;
-});
-function finishStroke() { if (stroke) { stroke = null; save(); } }
-canvas.addEventListener('pointerup', finishStroke);
-canvas.addEventListener('pointercancel', finishStroke);
-canvas.addEventListener('lostpointercapture', finishStroke);
-canvas.addEventListener('pointerleave', () => { if (!stroke) pointer = null; });
-window.addEventListener('keydown', event => {
-  if (document.querySelector('dialog[open]') || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)) return;
-  if (['1', '2', '3'].includes(event.key)) chooseTool({ 1: 'brush', 2: 'wrench', 3: 'belt' }[event.key]);
-  if (event.code === 'Space' && event.target === document.body) { event.preventDefault(); $('run').click(); }
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); $('undo').click(); }
-});
-window.addEventListener('pagehide', save);
-document.addEventListener('visibilitychange', () => { if (document.hidden) save(); lastFrame = performance.now(); });
-
-function frame(now) {
-  const dt = Math.min(.1, (now - lastFrame) / 1000); lastFrame = now;
-  if (!document.hidden && !document.querySelector('dialog[open]')) state = tick(state, dt);
-  scene.render(state, derive(state), { selected, tool, time: now, pointer });
-  if (now - lastUI > 120) { updateUI(); lastUI = now; }
-  if (now - lastSave > 2500 && storageAvailable) { save(); lastSave = now; }
+function frame(now){
+  const dt=Math.min((now-last)/1000,.06);last=now;time+=dt;
+  if(playing&&!paused){
+    const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?9:5)*dt;
+    const f=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0),side=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0),yaw=world.camera.rotation.y,norm=Math.max(1,Math.hypot(f,side));
+    world.camera.position.x+=(-Math.sin(yaw)*f+Math.cos(yaw)*side)*speed/norm;world.camera.position.z+=(-Math.cos(yaw)*f-Math.sin(yaw)*side)*speed/norm;
+    world.camera.position.x=Math.max(-26,Math.min(26,world.camera.position.x));world.camera.position.z=Math.max(-81,Math.min(26,world.camera.position.z));
+    world.camera.rotation.y+=((keys.has('ArrowLeft')?1:0)-(keys.has('ArrowRight')?1:0))*dt*1.4;
+    world.camera.rotation.x=Math.max(-1.25,Math.min(1.25,world.camera.rotation.x+((keys.has('ArrowUp')?1:0)-(keys.has('ArrowDown')?1:0))*dt));
+    targets=selectTargets(state,world.camera.position,world.getDirection());
+    if(holding||togglePump)state=tick(state,dt,targets);
+    const stats=derive(state);
+    if(stats.completed>wasComplete){wasComplete=stats.completed;chime();toast(`${stats.completed} из ${stats.total} форм ожили`);save();}
+    if(stats.finished&&!finishShown){finishShown=true;paused=true;release();$('finish').hidden=false;save();}
+  }else targets=[];
+  const pumping=playing&&!paused&&(holding||togglePump)&&targets.length>0;
+  $('reticle').classList.toggle('active',pumping);
+  if(windGain)windGain.gain.setTargetAtTime(pumping && audioEnabled ? .13 : 0,audioContext.currentTime,.12);
+  world.render(state,dt,time,targets,pumping,settings.reduced);
+  if(now-lastHUD>100){updateHUD();lastHUD=now;}
+  if(playing&&now-lastSave>5000){save();lastSave=now;}
   requestAnimationFrame(frame);
 }
-updateUI(); requestAnimationFrame(frame);
+updateHUD();requestAnimationFrame(frame);
