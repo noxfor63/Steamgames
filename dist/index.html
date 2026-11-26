@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#142d31">
+  <meta name="description" content="Верните движение забытому механическому городу. Небольшая игра о ремонте, выборе и одном повороте ключа.">
+  <title>Город на пружине — мастерская</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect rx='14' width='64' height='64' fill='%23142d31'/%3E%3Ctext x='32' y='46' text-anchor='middle' font-size='44' fill='%23e2b56b'%3E⚙%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="game">
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Город на пружине"><span class="brand-icon">⚙</span><span><strong>Город на пружине</strong><small>Мастерская • Нижний порт</small></span></a>
+    <div class="top-actions"><div class="restored"><span id="restore-count">0 / 3</span><span>механизма восстановлено</span></div><button class="icon-btn" id="sound" aria-label="Включить звук" title="Звук">♫<span class="slash"></span></button><button class="icon-btn" id="help" aria-label="Как играть" title="Как играть">?</button><button class="icon-btn" id="menu" aria-label="Настройки игры" title="Настройки игры">☰</button></div>
+  </header>
+  <section class="play-area">
+    <div class="world">
+      <canvas id="town" aria-label="Механический город. Выберите объект мышью или кнопками Поезд, Кран, Мельница ниже."></canvas>
+      <div class="chapter-label"><span class="eyebrow">История одного механизма</span><h1>Здесь снова<br>будет движение.</h1><p id="objective">Смахните пыль с крана.<br>Зажмите мышь и проведите по нему.</p></div>
+      <div id="world-alert" class="world-alert" hidden></div>
+      <div class="scene-footer"><span class="save-status" id="save-status">Прогресс сохраняется автоматически</span><span class="scene-note">Нижний порт · пробный эпизод</span></div>
+      <div class="world-tabs" aria-label="Выбрать механизм"><button data-select="train">Поезд</button><button data-select="crane" class="selected">Кран</button><button data-select="mill">Мельница</button></div>
+    </div>
+    <aside class="inspector">
+      <div class="inspector-head"><span class="eyebrow">На верстаке</span><span id="machine-tag" class="tag">Нужен уход</span></div>
+      <div class="machine-heading"><span id="machine-icon" class="machine-icon">⌁</span><div><h2 id="machine-name">Портовый кран</h2><p id="machine-description">Освободит пристань от старых ящиков.</p></div></div>
+      <div class="repair-card"><div class="row"><strong id="repair-label">Очистка корпуса</strong><span id="clean-value">0%</span></div><div class="progress-track"><div id="clean-bar"></div></div><p id="action-hint">Выберите щётку и проведите по механизму.</p><button id="repair" class="secondary full" disabled>Установить шестерню</button></div>
+      <div class="section-title">Привод <span id="machine-load">4 ед.</span></div>
+      <button id="connect" class="connect-card" disabled><span class="plug-icon">⌁</span><span><strong id="connection-label">Подключить ремень</strong><small id="connection-hint">Сначала восстановите механизм</small></span><span id="connection-toggle" class="switch"></span></button>
+      <div class="section-title">Одна деталь — два решения</div>
+      <button id="reducer" class="part-card"><span class="part-icon">⚙</span><span><strong>Латунный редуктор</strong><small id="reducer-description">Снижает нагрузку на 2 единицы</small></span><span id="reducer-location">На полке</span></button>
+      <p class="quiet-note" id="reducer-hint">Можно поставить на поезд или кран. Переставляйте свободно.</p>
+      <div class="tasks"><div class="section-title">Вернуть порту жизнь <span id="tasks-count">0 / 3</span></div><div class="task"><span>Расчистить пристань</span><span id="harbor-value">0%</span><div class="mini-track"><i id="harbor-bar"></i></div></div><div class="task"><span>Доставить детали</span><span id="cargo-value">0%</span><div class="mini-track"><i id="cargo-bar"></i></div></div><div class="task"><span>Отполировать детали</span><span id="polished-value">0%</span><div class="mini-track"><i id="polished-bar"></i></div></div></div>
+      <button class="mode-card" id="mode" disabled><span id="mode-icon">◇</span><span><strong id="mode-title">Переключатель закрыт</strong><small id="mode-description">Расчистите пристань или доставьте детали</small></span></button>
+    </aside>
+  </section>
+  <footer class="workbench"><div class="tools" aria-label="Инструменты"><button class="tool active" data-tool="brush" aria-pressed="true"><span class="tool-graphic brush-graphic">▰</span><span>Щётка<kbd>1</kbd></span></button><button class="tool" data-tool="wrench" aria-pressed="false"><span class="tool-graphic">⚒</span><span>Ремонт<kbd>2</kbd></span></button><button class="tool" data-tool="belt" aria-pressed="false"><span class="tool-graphic">∞</span><span>Ремень<kbd>3</kbd></span></button><div class="toolbar-divider"></div><button class="undo" id="undo" disabled title="Отменить последнее действие">↶<span>Отменить</span></button></div><div class="spring"><div class="spring-label"><strong>Заводная пружина</strong><span id="load-label">0 / 6</span></div><div class="power-meter" id="power-meter"><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="power-note">Подключите восстановленный механизм</span></div><button id="run" class="run"><span class="key-symbol">⚿</span><span><strong>Завести город</strong><small>Пробел</small></span></button></footer>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<dialog id="help-dialog"><button class="close" aria-label="Закрыть">×</button><span class="eyebrow">Письмо из мастерской</span><h2>Порт давно молчал.<br>Начнём с малого.</h2><p>Три механизма, одна пружина — и несколько способов вернуть всё в движение.</p><ol><li><strong>Очистите.</strong> Возьмите щётку и зажмите мышь, двигая её по крану, поезду или мельнице.</li><li><strong>Почините.</strong> Установите шестерню кнопкой на верстаке или инструментом «Ремонт».</li><li><strong>Подключите.</strong> Наденьте ремень. Пружина выдерживает 6 единиц нагрузки.</li><li><strong>Экспериментируйте.</strong> Переставьте редуктор на поезд или кран. Первый завершённый заказ откроет работу по очереди.</li></ol><p class="dialog-note">Все действия обратимы. Перегрузка ничего не ломает. Соберите, подключите и завершите задачи всех трёх механизмов.</p><button class="primary full close-action">За работу</button></dialog>
+<dialog id="menu-dialog"><button class="close" aria-label="Закрыть">×</button><span class="eyebrow">Мастерская</span><h2>Небольшой перерыв</h2><p>Прогресс хранится в этом браузере. Можно продолжить в любой момент.</p><button class="secondary full" id="reset">Начать новый эпизод</button><p id="reset-warning" hidden>Начать заново? Текущий прогресс будет сброшен.</p><button id="confirm-reset" class="danger full" hidden>Да, начать заново</button><button class="primary full close-action">Продолжить</button></dialog>
+<dialog id="win-dialog"><button class="close" aria-label="Закрыть">×</button><span class="win-medal">⚙</span><span class="eyebrow">Нижний порт снова живёт</span><h2>Один ключ.<br>Целый маленький мир.</h2><p>Кран освободил пристань, поезд привёз детали, мельница вернула им блеск. Вы собрали работающий город.</p><p id="win-stats" class="dialog-note"></p><button class="primary full close-action">Попробовать другую схему</button><button class="text-btn" id="win-reset">Начать с чистого верстака</button></dialog>
+<script type="module" src="app.js"></script>
+</body>
+</html>
