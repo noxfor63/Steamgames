@@ -5,8 +5,8 @@ import {RenderPass} from './vendor/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from './vendor/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from './vendor/postprocessing/OutputPass.js';
 import {PROJECTS,derive,REVEAL_SECONDS} from './engine.js';
-import {createHands,createCrucible} from './hands.js';
-import {STAND,INLET,HANDLES,PLAYER_START,interactionFor} from './interaction.js';
+import {createHands,createCrucible,createIngot} from './hands.js';
+import {STAND,INLET,HANDLES,STOCK,FURNACE,TAP,LOOKOUT,PLAYER_START,interactionFor,objectiveFor,canWalkSurface} from './interaction.js';
 const TAU=Math.PI*2, V=T.Vector3, clamp=T.MathUtils.clamp, lerp=T.MathUtils.lerp;
 let seed=42;const rand=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
 function texture(kind){
@@ -40,15 +40,35 @@ function orrery(mat,accent){const g=new T.Group();
  const cradle=new T.Group();cradle.position.y=3.16;g.add(cradle);g.userData.orbits=[];
  for(let i=0;i<3;i++){const orbit=new T.Group();cradle.add(orbit);orbit.rotation.set(i*.6,.28+i*.65,.42+i*.4);ring(orbit,i===1?accent:mat,1.57-i*.16,.045,0,0,0,0);ring(orbit,accent,1.61-i*.16,.012,0,0,0,0);for(let j=0;j<48;j++){let a=j/48*TAU;const tick=box(orbit,accent,Math.sin(a)*(1.57-i*.16),Math.cos(a)*(1.57-i*.16),0,.017,j%4===0?.13:.065,.025);tick.rotation.z=-a;}sphere(orbit,mat,1.57-i*.16,0,0,.13-i*.025);g.userData.orbits.push(orbit);}
  sphere(cradle,accent,0,0,0,.35);for(let i=0;i<12;i++){let a=i/12*TAU;tube(cradle,accent,[[Math.cos(a)*.36,Math.sin(a)*.36,0],[Math.cos(a)*.55,Math.sin(a)*.55,0]],.019);}return g;}
-export function createArtifact(index,metal,accent){return [lantern,fountain,orrery][index](metal,accent);}
+function bridgeArch(mat,accent){
+ const g=new T.Group();
+ for(const sign of [-1,1]){
+  lathe(g,mat,[[0,0],[.52,0],[.54,.15],[.44,.3],[.25,.42],[.22,2.7],[.36,2.85],[.36,3.02],[0,3.02]],sign*1.55,0,0);
+  for(const y of [.2,.45,2.75,2.95])ring(g,accent,y<.3?.5:.29,.035,sign*1.55,y,0);
+ }
+ tube(g,mat,[[-1.55,2.8,0],[-1.5,3.5,0],[-1,4.3,0],[0,4.7,0],[1,4.3,0],[1.5,3.5,0],[1.55,2.8,0]],.18);
+ tube(g,accent,[[-1.55,2.8,.19],[-1.5,3.5,.19],[-1,4.3,.19],[0,4.7,.19],[1,4.3,.19],[1.5,3.5,.19],[1.55,2.8,.19]],.028);
+ ring(g,accent,.3,.035,0,4.12,0,0);sphere(g,accent,0,4.12,0,.16);
+ for(let i=0;i<9;i++){const a=i/8*Math.PI;const m=box(g,accent,Math.cos(a)*1.27,3.3+Math.sin(a)*1.12,0,.07,.14,.42);m.rotation.z=a-Math.PI/2;}
+ return g;
+}
+export function createArtifact(index,metal,accent){return [lantern,fountain,orrery,bridgeArch][index](metal,accent);}
+export function createBridge(materials){
+ const group=new T.Group(),arches=new T.Group(),deck=new T.Group(),rails=new T.Group();group.add(arches,deck,rails);
+ for(const x of [-5.2,0,5.2]){const gate=bridgeArch(materials.bronze,materials.gold);gate.position.set(x,.13,0);gate.rotation.y=Math.PI/2;arches.add(gate);}
+ box(deck,materials.iron,0,-.1,0,15.6,.24,3.25);
+ for(let i=0;i<39;i++)box(deck,materials.bronze,-7.6+i*.4,.045,0,.38,.08,3.1);
+ for(const z of [-1.58,1.58]){for(let x=-7.5;x<=7.5;x+=.75){cyl(rails,materials.bronze,x,.66,z,.035,1.2);sphere(rails,materials.gold,x,1.28,z,.06);}box(rails,materials.bronze,0,1.2,z,15.6,.065,.075);box(rails,materials.gold,0,.58,z,15.6,.025,.035);}
+ group.userData.parts=[arches,deck,rails];return group;
+}
 export function createScene(canvas,settings={}){
- const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.localClippingEnabled=true;
+ const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;renderer.localClippingEnabled=true;
  const scene=new T.Scene();scene.fog=new T.FogExp2('#a2b5ae',.012);
  const camera=new T.PerspectiveCamera(46,1,.1,500);camera.position.set(11,6.4,12);camera.lookAt(-2.7,2,0);camera.rotation.order='YXZ';scene.add(camera);
- const pmrem=new T.PMREMGenerator(renderer),env=new RoomEnvironment();scene.environment=pmrem.fromScene(env,.06).texture;scene.environmentIntensity=.75;env.dispose();pmrem.dispose();
+ const pmrem=new T.PMREMGenerator(renderer),env=new RoomEnvironment();scene.environment=pmrem.fromScene(env,.06).texture;scene.environmentIntensity=.6;env.dispose();pmrem.dispose();
  const stoneTex=texture('stone'),metalTex=texture('metal'),ceramicTex=texture('ceramic');
  const mats={stone:new T.MeshStandardMaterial({color:'#9e9a86',roughness:.88,bumpMap:stoneTex,bumpScale:.075}),lightStone:new T.MeshStandardMaterial({color:'#c2b69b',roughness:.84,bumpMap:stoneTex,bumpScale:.045}),darkStone:new T.MeshStandardMaterial({color:'#465956',roughness:.85,bumpMap:stoneTex,bumpScale:.08}),bronze:new T.MeshStandardMaterial({color:'#9f6a38',metalness:.88,roughness:.31,roughnessMap:metalTex,bumpMap:metalTex,bumpScale:.015,envMapIntensity:1.3}),gold:new T.MeshStandardMaterial({color:'#d3aa64',metalness:.87,roughness:.24,roughnessMap:metalTex,bumpMap:metalTex,bumpScale:.009,envMapIntensity:1.5}),teal:new T.MeshStandardMaterial({color:'#2c6c63',metalness:.35,roughness:.38,bumpMap:ceramicTex,bumpScale:.022}),clay:new T.MeshStandardMaterial({color:'#b5a48a',roughness:.93,bumpMap:ceramicTex,bumpScale:.047,side:T.DoubleSide}),iron:new T.MeshStandardMaterial({color:'#263735',metalness:.7,roughness:.56}),wood:new T.MeshStandardMaterial({color:'#5c4c37',roughness:.9,bumpMap:metalTex,bumpScale:.04}),leaf:new T.MeshStandardMaterial({color:'#344f35',roughness:.9}),white:new T.MeshStandardMaterial({color:'#d7c5a1',roughness:.9})};
- const sun=new T.DirectionalLight('#ffe0a2',3.1);sun.position.set(-15,25,12);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-22,right:22,top:22,bottom:-22,near:1,far:75});sun.shadow.bias=-.0002;sun.shadow.normalBias=.035;sun.shadow.radius=3;sun.target.position.set(0,0,-6);scene.add(sun,sun.target);scene.add(new T.HemisphereLight('#b6d4e3','#6e6348',1.35));const bounce=new T.DirectionalLight('#8ec4c0',.6);bounce.position.set(10,8,-15);scene.add(bounce);
+ const sun=new T.DirectionalLight('#ffe0a2',2.7);sun.position.set(-15,25,12);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-22,right:22,top:22,bottom:-22,near:1,far:75});sun.shadow.bias=-.0002;sun.shadow.normalBias=.035;sun.shadow.radius=3;sun.target.position.set(0,0,-6);scene.add(sun,sun.target);scene.add(new T.HemisphereLight('#b6d4e3','#6e6348',1.05));const bounce=new T.DirectionalLight('#8ec4c0',.6);bounce.position.set(10,8,-15);scene.add(bounce);
  const skyMat=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{top:{value:new T.Color('#668f9d')},bottom:{value:new T.Color('#d8c9a7')}},vertexShader:'varying vec3 vWorld;void main(){vWorld=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 vWorld;uniform vec3 top;uniform vec3 bottom;void main(){float h=normalize(vWorld).y;vec3 c=mix(bottom,top,smoothstep(-.05,.65,h));float sun=pow(max(0.,dot(normalize(vWorld),normalize(vec3(-.6,.25,-.5)))),140.);c+=vec3(.65,.42,.14)*sun;gl_FragColor=vec4(c,1.);}'});mesh(scene,new T.SphereGeometry(240,32,20),skyMat).castShadow=false;
  const seaMat=new T.MeshStandardMaterial({color:'#3d797c',roughness:.24,metalness:.48});seaMat.onBeforeCompile=s=>{s.uniforms.uTime={value:0};seaMat.userData.shader=s;s.vertexShader='uniform float uTime;\n'+s.vertexShader;s.vertexShader=s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n transformed.z += sin(position.x*.19+uTime*.5)*.12+sin(position.y*.3+uTime*.3)*.055;');s.vertexShader=s.vertexShader.replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\n objectNormal.x+=cos(position.x*.19+uTime*.5)*.10;objectNormal.y+=cos(position.y*.3+uTime*.3)*.13;');};const sea=mesh(scene,new T.PlaneGeometry(450,450,120,120),seaMat,0,-1.2,-40);sea.rotation.x=-Math.PI/2;sea.castShadow=false;
  // A paved working terrace with individually bevelled-looking joints and inlaid rings.
@@ -66,7 +86,7 @@ export function createScene(canvas,settings={}){
  const fireMat=new T.MeshStandardMaterial({color:'#ff811c',emissive:'#ff7205',emissiveIntensity:3.2});const mouth=mesh(kiln,new T.CircleGeometry(.55,48),mats.iron,0,.9,1.28);mouth.scale.y=.8;const fire=mesh(kiln,new T.CircleGeometry(.42,40),fireMat,0,.9,1.3);fire.scale.y=.72;ring(kiln,mats.bronze,.53,.075,0,.9,1.28,0);for(let i=-2;i<=2;i++)box(kiln,mats.iron,i*.15,.9,1.34,.045,.65,.05);const fireLight=new T.PointLight('#ff9b39',12,9,2);fireLight.position.set(-5.5,1,-.1);scene.add(fireLight);
  box(scene,mats.wood,-6,.7,3.3,3.1,.16,1.3);for(const x of [-7.2,-4.8])for(const z of [2.8,3.8])box(scene,mats.iron,x,.37,z,.09,.7,.09);for(let i=0;i<5;i++){const ingot=box(scene,mats.bronze,-6.7+i*.34,.85,3.3,.28,.14,.65);ingot.rotation.y=.1;}lathe(scene,mats.clay,[[0,0],[.4,0],[.5,.7],[.57,.8],[.5,.84],[.42,.65],[.3,.1],[0,.1]],-7.1,.12,1.3);
  // Plants, benches and hanging lamps establish scale.
- for(const [x,z]of [[-10,2],[-12,-6],[9,-10],[13,-3],[8,7]]){lathe(scene,mats.teal,[[0,0],[.47,0],[.65,.12],[.73,.88],[.83,1.0],[.83,1.14],[.69,1.14],[.61,.8],[0,.2]],x,.1,z);cyl(scene,mats.wood,x,2,z,.09,2.2,.07);for(let i=0;i<7;i++){const s=sphere(scene,mats.leaf,x+Math.sin(i*2.4)*.2,1.4+i*.37,z+Math.cos(i*2.4)*.2,.75-i*.065);s.scale.set(.8,1.25,.8);}}
+ for(const [x,z]of [[-10,2],[-12,-6],[9,-10],[13,2],[8,7]]){lathe(scene,mats.teal,[[0,0],[.47,0],[.65,.12],[.73,.88],[.83,1.0],[.83,1.14],[.69,1.14],[.61,.8],[0,.2]],x,.1,z);cyl(scene,mats.wood,x,2,z,.09,2.2,.07);for(let i=0;i<7;i++){const s=sphere(scene,mats.leaf,x+Math.sin(i*2.4)*.2,1.4+i*.37,z+Math.cos(i*2.4)*.2,.75-i*.065);s.scale.set(.8,1.25,.8);}}
  for(const [x,z]of [[-11,5],[11,4]]){for(let i=0;i<4;i++)box(scene,mats.wood,x,.65,z+(i-1.5)*.17,2.6,.09,.12);for(const dx of [-1,1])box(scene,mats.iron,x+dx,.35,z,.1,.6,.65);}
  const glowMap=glowTexture(),glows=[];function glow(p,x,y,z,size){const s=new T.Sprite(new T.SpriteMaterial({map:glowMap,color:'#ffbd68',transparent:true,depthWrite:false,blending:T.AdditiveBlending}));s.position.set(x,y,z);s.scale.setScalar(size);p.add(s);return s;}
  for(const [x,z]of [[-9,-8],[4,-13],[10,-6]]){cyl(scene,mats.iron,x,2,z,.045,3.9);tube(scene,mats.iron,[[x,3.9,z],[x,4.2,z],[x+.7,4.2,z],[x+.8,3.8,z]],.045);cyl(scene,mats.bronze,x+.8,3.5,z,.17,.08,.22);sphere(scene,fireMat,x+.8,3.65,z,.12);glow(scene,x+.8,3.65,z,1.2);}
@@ -78,7 +98,7 @@ export function createScene(canvas,settings={}){
  const pit=mesh(scene,new T.CircleGeometry(2.38,64),pitMat,0,.145,0);pit.rotation.x=-Math.PI/2;
  for(const r of [2.25,2.38])ring(scene,mats.bronze,r,.035,0,.18,0);
  const baseY=.35,workHeight=3,projects=[],ghostMat=new T.MeshBasicMaterial({color:'#d5c39c',wireframe:true,transparent:true,opacity:.04,depthWrite:false});
- for(let i=0;i<3;i++){
+ for(let i=0;i<PROJECTS.length;i++){
   const root=createArtifact(i,mats.bronze,mats.gold);const bounds=new T.Box3().setFromObject(root),height=bounds.max.y-bounds.min.y;root.scale.setScalar(workHeight/height);root.position.y=baseY;scene.add(root);
   const lower=new T.Plane(new V(0,-1,0),baseY),upper=new T.Plane(new V(0,-1,0),baseY),bottom=new T.Plane(new V(0,1,0),-baseY);
   const hot=new T.MeshStandardMaterial({color:'#f3a43e',metalness:.6,roughness:.25,emissive:'#ff6306',emissiveIntensity:2.2,clippingPlanes:[upper,bottom],clipShadows:true,bumpMap:metalTex,bumpScale:.014});
@@ -89,6 +109,21 @@ export function createScene(canvas,settings={}){
  // Completed works live on the promenade, at progressively greater scale.
  const exhibits=[];for(let i=0;i<3;i++){const group=new T.Group(),loc=[[-7,-7],[0,-10],[8,-6]][i],scale=[.8,1.15,1.45][i];group.position.set(loc[0],.2,loc[1]);scene.add(group);cyl(group,mats.lightStone,0,.18,0,(PROJECTS[i].radius+.3)*scale,.35);const obj=createArtifact(i,mats.bronze,mats.gold);obj.scale.setScalar(scale);obj.position.y=.4;group.add(obj);const fx=new T.Group();obj.add(fx);if(i===0){sphere(fx,fireMat,0,2.22,0,.22);glow(fx,0,2.22,0,1.6);}if(i===1){const watermat=new T.MeshPhysicalMaterial({color:'#8ecac4',metalness:.18,roughness:.12,transparent:true,opacity:.62});for(let j=0;j<12;j++){let a=j/12*TAU;const jet=tube(fx,watermat,[[Math.cos(a)*.56,3.45,Math.sin(a)*.56],[Math.cos(a)*.9,3,Math.sin(a)*.9],[Math.cos(a)*1.01,2.5,Math.sin(a)*1.01]],.019);jet.castShadow=false;const flow=tube(fx,watermat,[[Math.cos(a)*1.02,2.6,Math.sin(a)*1.02],[Math.cos(a)*1.34,2,Math.sin(a)*1.34],[Math.cos(a)*1.48,1.4,Math.sin(a)*1.48]],.024);flow.castShadow=false;}}
   if(i===2)glow(fx,0,3.16,0,2.1);group.visible=false;exhibits.push({group,obj,fx});}
+ // The final cast creates an actual traversable route to an offshore terrace.
+ const bridgeRoot=new T.Group();bridgeRoot.position.set(23,.1,-3);scene.add(bridgeRoot);const bridge=createBridge(mats);bridgeRoot.add(bridge);exhibits.push({group:bridgeRoot,obj:bridge,fx:new T.Group()});
+ cyl(scene,mats.darkStone,LOOKOUT.x,-.55,LOOKOUT.z,4.8,1.15,4.6,64);cyl(scene,mats.lightStone,LOOKOUT.x,.08,LOOKOUT.z,4.6,.13,4.6,64);
+ for(let i=0;i<28;i++){const a=i/28*TAU;if(Math.cos(a)<-.87)continue;const x=LOOKOUT.x+Math.cos(a)*4.4,z=LOOKOUT.z+Math.sin(a)*4.4;cyl(scene,mats.bronze,x,.65,z,.035,1.1);sphere(scene,mats.gold,x,1.23,z,.06);}
+ ring(scene,mats.bronze,3.9,.024,LOOKOUT.x,.16,LOOKOUT.z);
+ box(scene,mats.wood,34,.62,-3,2.4,.1,.6);for(const x of [33.1,34.9])box(scene,mats.iron,x,.35,-3,.08,.55,.55);
+ // Unlimited stock, a charging hatch, and the furnace's physical bronze tap.
+ box(scene,mats.wood,STOCK.x,.74,STOCK.z,1.35,.13,.85);for(const dx of [-.5,.5])for(const dz of [-.3,.3])box(scene,mats.iron,STOCK.x+dx,.38,STOCK.z+dz,.055,.75,.055);
+ for(let i=0;i<16;i++){const ingot=createIngot(mats.bronze);ingot.position.set(STOCK.x+(i%4-1.5)*.27,.83+Math.floor(i/8)*.09,STOCK.z+(Math.floor(i/4)%2-.5)*.25);scene.add(ingot);}
+ const chargeDoor=mesh(scene,new T.CircleGeometry(.32,32),mats.iron,FURNACE.x,FURNACE.y,FURNACE.z);ring(scene,mats.bronze,.33,.045,FURNACE.x,FURNACE.y,FURNACE.z+.02,0);
+ tube(scene,mats.bronze,[[-4.5,1.9,-1.6],[TAP.x,1.9,-1.4],[TAP.x,1.5,TAP.z],[TAP.x,TAP.y,TAP.z]],.075);ring(scene,mats.iron,.18,.025,TAP.x,1.96,TAP.z-.12,0);
+ const tapFlow=mesh(scene,new T.CylinderGeometry(.024,.032,1,10),fireMat);tapFlow.visible=false;tapFlow.castShadow=false;
+ const guideRing=ring(scene,new T.MeshBasicMaterial({color:'#f3c57c',transparent:true,opacity:.75,depthWrite:false}),.38,.015,0,0,0);guideRing.castShadow=false;
+ let bridgeOpen=false,lastMaterialAction='loadFurnace',furnacePulse=0;
+ function recordAction(type){if(['loadFurnace','takeIngots','returnIngots'].includes(type))lastMaterialAction=type;if(type==='loadFurnace')furnacePulse=1;}
  // The same crucible can stand on its rest or be gripped by the player's hands.
  cyl(scene,mats.iron,STAND.x,.43,STAND.z,.29,.82,.26);
  cyl(scene,mats.bronze,STAND.x,.83,STAND.z,.36,.08);
@@ -112,9 +147,9 @@ export function createScene(canvas,settings={}){
  function quality(q){renderer.setPixelRatio(Math.min(devicePixelRatio,q==='high'?1.65:1));bloom.enabled=q==='high';sun.shadow.mapSize.set(q==='high'?2048:1024,q==='high'?2048:1024);sun.shadow.map?.dispose();sun.shadow.map=null;resize();}
  function setMode(next){mode=next;if(next!=='intro'){camera.fov=66;camera.updateProjectionMatrix();camera.position.set(PLAYER_START.x,PLAYER_START.y,PLAYER_START.z);yaw=0;pitch=-.38;camera.rotation.set(pitch,yaw,0,'YXZ');}}
  function look(dx,dy,sensitivity=1){if(mode==='intro')return;yaw-=dx*.0023*sensitivity;pitch=clamp(pitch-dy*.0023*sensitivity,-1.25,1.15);camera.rotation.set(pitch,yaw,0,'YXZ');camera.updateMatrixWorld(true);}
- function move(f,side,dt){moving=!!(f||side);if(mode==='intro')return;const speed=2.8*dt/Math.max(1,Math.hypot(f,side)),nx=camera.position.x+(-Math.sin(yaw)*f+Math.cos(yaw)*side)*speed,nz=camera.position.z+(-Math.cos(yaw)*f-Math.sin(yaw)*side)*speed;const blocked=Math.hypot(nx,nz)<2.5||Math.hypot(nx-STAND.x,nz-STAND.z)<.45||Math.hypot(nx+5.5,nz+1.6)<1.7||exhibits.some(e=>e.group.visible&&Math.hypot(nx-e.group.position.x,nz-e.group.position.z)<2.3);if(!blocked&&Math.hypot(nx,nz+3)<16.5){camera.position.x=nx;camera.position.z=nz;}}
+ function move(f,side,dt){moving=!!(f||side);if(mode==='intro')return;const speed=2.8*dt/Math.max(1,Math.hypot(f,side)),nx=camera.position.x+(-Math.sin(yaw)*f+Math.cos(yaw)*side)*speed,nz=camera.position.z+(-Math.cos(yaw)*f-Math.sin(yaw)*side)*speed;const blocked=Math.hypot(nx,nz)<2.5||Math.hypot(nx-STOCK.x,nz-STOCK.z)<.65||Math.hypot(nx-STAND.x,nz-STAND.z)<.45||Math.hypot(nx+5.5,nz+1.6)<1.7||exhibits.some((e,i)=>i<3&&e.group.visible&&Math.hypot(nx-e.group.position.x,nz-e.group.position.z)<2.3);if(!blocked&&canWalkSurface(nx,nz,bridgeOpen)){camera.position.x=nx;camera.position.z=nz;}}
  function getInteraction(state){camera.updateMatrixWorld(true);camera.getWorldDirection(direction);const result=interactionFor(state,camera.position,direction);if(handRig.carry<.9)result.point=null;result.readyToPour=handRig.carry>=.9&&handRig.spoutWorld().y>=INLET.y+.015;return result;}
- function render(state,dt,time,{pouring=false,reduced=false}={}){
+ function render(state,dt,time,{pouring=false,reduced=false,charging=false}={}){
   const d=derive(state),p=PROJECTS[d.projectIndex],model=projects[d.projectIndex];if(lastCursor!==state.cursor){displayFill=d.progress;lastCursor=state.cursor;}displayFill=lerp(displayFill,d.progress,1-Math.exp(-dt*12));
   for(let i=0;i<projects.length;i++){projects[i].root.visible=i===d.projectIndex&&state.phase!=='finished';projects[i].mold.visible=i===d.projectIndex&&state.phase!=='finished';exhibits[i].group.visible=i<state.completed;}
   const stageBottom=workHeight*d.part/3,stageTop=workHeight*(d.part+1)/3,fillY=baseY+(stageTop-stageBottom)*displayFill;model.root.position.y=baseY-stageBottom;
@@ -122,18 +157,22 @@ export function createScene(canvas,settings={}){
   const hotVisible=state.phase!=='ready'&&state.phase!=='finished'&&state.amount>0;model.molten.forEach(m=>m.visible=hotVisible);model.ghosts.forEach(m=>m.visible=state.phase==='pour');
   model.hot.color.set('#bd8b4b').lerp(new T.Color('#ffcb65'),d.heat);model.hot.emissive.set('#ff6507');model.hot.emissiveIntensity=Math.max(0,d.heat)*2.6;
   const open=state.phase==='ready'?1:state.phase==='reveal'?Math.min(1,state.phaseTime/REVEAL_SECONDS):0,smooth=open*open*(3-2*open);model.mold.position.y=baseY+(stageTop-stageBottom)/2;model.mold.scale.y=stageTop-stageBottom;for(const {petal,a}of model.petals){petal.position.set(Math.sin(a)*smooth*1.5,-smooth*.12,Math.cos(a)*smooth*1.5);petal.rotation.x=Math.cos(a)*smooth*.2;petal.rotation.z=-Math.sin(a)*smooth*.2;}
-  const active=pouring&&state.held&&handRig.carry>=.9&&state.phase==='pour'&&mode!=='intro';
+  const active=pouring&&state.charged&&state.held&&handRig.carry>=.9&&state.phase==='pour'&&mode!=='intro';
   const points=handleGroups.map((g,i)=>{const sign=i===0?-1:1;g.position.set(sign*(.46+smooth*.53),HANDLES.y,HANDLES.z+smooth*.15);return g.position.clone().add(new V(0,0,.06));});
   const openingPose=state.phase==='reveal';
-  handRig.update({held:state.held,pouring:active,openingPose,opening:open,moving,reduced,dt,time,handlePoints:points});handRig.root.visible=mode!=='intro';
-  restingTool.visible=!state.held&&handRig.carry<.003;
+  handRig.update({held:state.held,pouring:active,openingPose,opening:open,moving,reduced,dt,time,handlePoints:points,ingots:state.ingots,metalLevel:d.metalLevel,charging,returningIngots:lastMaterialAction==='returnIngots'});handRig.root.visible=mode!=='intro';
+  restingTool.visible=!state.held&&handRig.carry<.003;restingTool.userData.pool.visible=d.metalLevel>.001;restingTool.userData.pool.position.y=.15+.45*d.metalLevel;restingTool.userData.pool.scale.setScalar(.65+.35*d.metalLevel);
+  tapFlow.visible=charging&&mode!=='intro';if(tapFlow.visible){const end=handRig.tool.userData.pool.getWorldPosition(new V()),start=new V(TAP.x,TAP.y,TAP.z),delta=end.clone().sub(start);tapFlow.position.copy(start).lerp(end,.5);tapFlow.quaternion.setFromUnitVectors(new V(0,1,0),delta.clone().normalize());tapFlow.scale.y=delta.length();}
+  const objective=objectiveFor(state);guideRing.visible=mode!=='intro';guideRing.position.set(objective.target.x,objective.target.y+.03,objective.target.z);guideRing.scale.setScalar(1+(reduced?0:Math.sin(time*2)*.06));
+  bridgeOpen=state.completed>=PROJECTS.length;const bridgeParts=bridgeOpen?3:d.projectIndex===3?d.part+(state.phase==='ready'?1:0):0;bridgeRoot.visible=bridgeParts>0;bridge.userData.parts.forEach((part,i)=>part.visible=i<bridgeParts);
+  furnacePulse=Math.max(0,furnacePulse-dt*1.8);
   const interaction=getInteraction(state);inletRim.material=interaction.point?mats.gold:mats.bronze;
   inletMetal.visible=active&&!!interaction.point;
   stream.visible=impactGlow.visible=sparks.visible=active;
   const start=handRig.spoutWorld();camera.getWorldDirection(direction);
   const end=interaction.point?new V(interaction.point.x,interaction.point.y,interaction.point.z):start.clone().addScaledVector(direction,.65);if(!interaction.point)end.y=.18;
   if(active){const pos=stream.geometry.attributes.position;for(let i=0;i<pos.count;i++){const iy=Math.floor(i/11),angle=(i%11)/10*TAU,t=iy/24,curve=start.clone().lerp(end,t);curve.y+=Math.sin(t*Math.PI)*.08;const r=(.023+state.level*.009)*(1+.12*Math.sin(t*30-time*22));pos.setXYZ(i,curve.x+Math.cos(angle)*r,curve.y,curve.z+Math.sin(angle)*r);}pos.needsUpdate=true;stream.geometry.computeVertexNormals();impactGlow.position.copy(end);impactGlow.scale.setScalar(.6+state.level*.15);pourLight.position.copy(end).add(new V(0,.3,0));for(let i=0;i<70;i++){let f=(time*(.8+(i%5)*.13)+i*.148)%1,a=i*2.399;sparkPositions[i*3]=end.x+Math.sin(a)*f*.3;sparkPositions[i*3+1]=end.y+Math.sin(f*Math.PI)*(.1+(i%7)*.025);sparkPositions[i*3+2]=end.z+Math.cos(a)*f*.3;}sparkGeo.attributes.position.needsUpdate=true;sparks.visible=!reduced;}
-  pourLight.intensity=lerp(pourLight.intensity,active?9:state.phase==='cool'?d.heat*5:0,Math.min(1,dt*8));fireLight.intensity=11+Math.sin(time*3.2)*.8;fire.material.emissiveIntensity=3+Math.sin(time*5)*.15;
+  pourLight.intensity=lerp(pourLight.intensity,active?9:state.phase==='cool'?d.heat*5:0,Math.min(1,dt*8));fireLight.intensity=11+Math.sin(time*3.2)*.8+furnacePulse*12;fire.material.emissiveIntensity=3+Math.sin(time*5)*.15;
   if(seaMat.userData.shader)seaMat.userData.shader.uniforms.uTime.value=reduced?0:time;for(const e of exhibits)if(e.group.visible&&e.obj.userData.orbits&&!reduced)e.obj.userData.orbits.forEach((o,i)=>{o.rotation.y+=dt*.055*(i+1);});
   if(mode==='intro'){const a=.73+(reduced?0:Math.sin(time*.055)*.07);targetCamera.set(Math.sin(a)*17,6.1,Math.cos(a)*17);lookTarget.set(-3.7,2,0);}else camera.rotation.set(pitch,yaw,0,'YXZ');
   if(mode==='intro'){
@@ -143,5 +182,5 @@ export function createScene(canvas,settings={}){
   }else projects[2].root.rotation.y=0;
   if(mode==='intro'){camera.position.lerp(targetCamera,reduced?1:1-Math.exp(-dt*3.2));camera.lookAt(lookTarget);}composer.render();
  }
- quality(settings.quality||'high');return {render,resize,quality,setMode,look,move,getInteraction,camera,renderer};
+ quality(settings.quality||'high');return {render,resize,quality,setMode,look,move,getInteraction,recordAction,camera,renderer};
 }

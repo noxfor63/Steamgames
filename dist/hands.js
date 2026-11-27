@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.js';
-import {STAND,INLET} from './interaction.js';
+import {STAND,INLET,STOCK,FURNACE,TAP} from './interaction.js';
 const V=T.Vector3;
 function add(parent,geometry,material,x=0,y=0,z=0){const m=new T.Mesh(geometry,material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
 function tube(parent,material,points,r){return add(parent,new T.TubeGeometry(new T.CatmullRomCurve3(points.map(p=>new V(...p))),20,r,8,false),material);}
@@ -11,7 +11,12 @@ export function createCrucible(metal,trim,hot){
  // The forward pouring lip is open at its end; its marker is the exact stream origin.
  tube(g,metal,[[0,.65,-.38],[0,.69,-.58],[0,.62,-.78]],.105);
  const pool=add(g,new T.CircleGeometry(.39,40),hot,0,.6,0);pool.rotation.x=-Math.PI/2;
- const spout=new T.Object3D();spout.position.set(0,.62,-.8);g.add(spout);g.userData.spout=spout;return g;
+ const spout=new T.Object3D();spout.position.set(0,.62,-.8);g.add(spout);g.userData.spout=spout;g.userData.pool=pool;return g;
+}
+export function createIngot(material){
+ const shape=new T.Shape();shape.moveTo(-.115,0);shape.lineTo(.115,0);shape.lineTo(.09,.07);shape.lineTo(-.09,.07);shape.closePath();
+ const geometry=new T.ExtrudeGeometry(shape,{depth:.17,bevelEnabled:true,bevelSize:.008,bevelThickness:.008,bevelSegments:2,steps:1});geometry.translate(0,0,-.085);
+ return new T.Mesh(geometry,material);
 }
 export function createHand(side,leather,seam){
  const g=new T.Group();const palm=add(g,new T.SphereGeometry(1,20,14),leather);palm.scale.set(.074,.037,.091);
@@ -33,20 +38,26 @@ export function createHands(camera,materials){
  const tool=createCrucible(materials.iron,materials.bronze,hot);tool.scale.setScalar(.46);root.add(tool);
  const wrists=[new V(),new V()],hands=[],arms=[],cuffs=[];
  for(const sign of [-1,1]){const hand=createHand(sign,leather,seam);root.add(hand);hands.push(hand);const arm=add(root,new T.CylinderGeometry(.062,.115,1,16),cloth);arms.push(arm);const cuff=add(root,new T.CylinderGeometry(.075,.077,.12,20),leather);cuffs.push(cuff);}
- let carry=0,tilt=0,openBlend=0;const heldPosition=new V(.16,-.38,-.69),yAxis=new V(0,1,0),inverse=new T.Quaternion(),desired=new T.Quaternion(),standLocal=new V();
- function update({held,pouring,opening=0,openingPose=false,moving=false,reduced=false,dt,time,handlePoints}){
-  const ease=1-Math.exp(-dt*9);carry=T.MathUtils.lerp(carry,held?1:0,ease);tilt=T.MathUtils.lerp(tilt,pouring?.82:0,1-Math.exp(-dt*11));openBlend=T.MathUtils.lerp(openBlend,openingPose?1:0,ease);
+ const bundle=new T.Group();root.add(bundle);const bars=[];for(let i=0;i<24;i++){const bar=createIngot(materials.bronze);bar.position.set((i%2-.5)*.25,Math.floor(i/4)*.09,(Math.floor(i/2)%2-.5)*.2);bundle.add(bar);bars.push(bar);}
+ const tray=add(bundle,new T.BoxGeometry(.58,.035,.47),materials.wood,0,-.03,0);
+ let carry=0,tilt=0,openBlend=0,bundleBlend=0,bundleCount=0,chargeBlend=0;const heldPosition=new V(.16,-.38,-.69),yAxis=new V(0,1,0),inverse=new T.Quaternion(),desired=new T.Quaternion(),standLocal=new V();
+ function update({held,pouring,opening=0,openingPose=false,moving=false,reduced=false,dt,time,handlePoints,ingots=0,metalLevel=1,charging=false,returningIngots=false}){
+  const ease=1-Math.exp(-dt*9);bundleBlend=T.MathUtils.lerp(bundleBlend,ingots>0?1:0,ease);chargeBlend=T.MathUtils.lerp(chargeBlend,charging?1:0,ease);if(ingots>0)bundleCount=ingots;carry=T.MathUtils.lerp(carry,held?1:0,ease);tilt=T.MathUtils.lerp(tilt,pouring?.82:0,1-Math.exp(-dt*11));openBlend=T.MathUtils.lerp(openBlend,openingPose?1:0,ease);
   root.visible=true;camera.updateMatrixWorld(true);standLocal.set(STAND.x,STAND.y-.2,STAND.z);camera.worldToLocal(standLocal);tool.position.copy(standLocal).lerp(heldPosition,carry);
   if(!reduced&&moving&&held){tool.position.y+=Math.sin(time*7)*.012;tool.position.x+=Math.cos(time*3.5)*.008;}
   camera.getWorldQuaternion(inverse).invert();desired.setFromEuler(new T.Euler(-tilt,.03,0));tool.quaternion.copy(inverse).slerp(desired,carry);tool.visible=carry>.002;
   // Lift the wrists while tipping, keeping the lip above the receiving funnel.
   tool.position.y+=carry*tilt*.4;
   if(pouring&&carry>.9){tool.updateMatrixWorld(true);const lip=tool.userData.spout.getWorldPosition(new V()),up=new V(0,1,0).applyQuaternion(camera.quaternion);const lift=Math.max(0,INLET.y+.16-lip.y)/Math.max(.3,up.y);tool.position.y+=Math.min(.55,lift);}
-  tool.updateMatrixWorld(true);
+  const fillingPosition=new V(TAP.x,TAP.y-.46,TAP.z);camera.worldToLocal(fillingPosition);tool.position.lerp(fillingPosition,chargeBlend);tool.quaternion.slerp(inverse,chargeBlend);
+  const pool=tool.userData.pool;pool.visible=metalLevel>.001;pool.position.y=.15+.45*metalLevel;pool.scale.setScalar(.65+.35*metalLevel);
+  const bundleOrigin=ingots>0||returningIngots?STOCK:FURNACE;const origin=new V(bundleOrigin.x,bundleOrigin.y-.13,bundleOrigin.z);camera.worldToLocal(origin);bundle.position.copy(origin).lerp(new V(0,-.35,-.67),bundleBlend);bundle.quaternion.copy(inverse).slerp(new T.Quaternion(),bundleBlend);bundle.visible=bundleBlend>.002;bars.forEach((bar,i)=>bar.visible=i<bundleCount);
+  tool.updateMatrixWorld(true);bundle.updateMatrixWorld(true);
   for(let i=0;i<2;i++){
    const sign=i===0?-1:1,hand=hands[i],wrist=wrists[i];
    const grip=new V(sign*.72,.38,.035);tool.localToWorld(grip);camera.worldToLocal(grip);
    const idle=new V(sign*.36,-.68,-.47);wrist.copy(idle).lerp(grip,Math.min(1,carry*4));
+   if(bundleBlend>.002){const grasp=new V(sign*.28,-.015,.05);bundle.localToWorld(grasp);camera.worldToLocal(grasp);wrist.lerp(grasp,Math.min(1,bundleBlend*4));}
    if(handlePoints){const reach=handlePoints[i].clone();camera.worldToLocal(reach);wrist.lerp(reach,openBlend);}
    hand.position.copy(wrist);hand.rotation.set(-.1+tilt*.5,sign*.24,sign*.30);hand.rotation.x=T.MathUtils.lerp(hand.rotation.x,-.18,openBlend);
    const shoulder=new V(sign*.38,-.62,.12),delta=wrist.clone().sub(shoulder),length=delta.length();
@@ -55,5 +66,5 @@ export function createHands(camera,materials){
   }
  }
  function spoutWorld(){tool.updateWorldMatrix(true,true);return tool.userData.spout.getWorldPosition(new V());}
- return {root,tool,hands,update,spoutWorld,get carry(){return carry;}};
+ return {root,tool,hands,bundle,update,spoutWorld,get carry(){return carry;}};
 }
