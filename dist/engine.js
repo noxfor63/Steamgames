@@ -1,88 +1,14 @@
-export const SAVE_VERSION = 2;
-export const TIERS = Object.freeze([
-  { name: 'Карманный насос', flow: 4, reach: 9, targets: 1, cost: 0 },
-  { name: 'Воздушная насадка', flow: 12, reach: 12, targets: 1, cost: 40 },
-  { name: 'Двойной компрессор', flow: 36, reach: 16, targets: 2, cost: 140 },
-  { name: 'Ветровая пушка', flow: 108, reach: 22, targets: 3, cost: 480 },
-  { name: 'Парк на одном выдохе', flow: 324, reach: 29, targets: 5, cost: 1600 },
-  { name: 'Маленький ураган', flow: 972, reach: 38, targets: 8, cost: 5200 },
-  { name: 'Большой вдох', flow: 2916, reach: 52, targets: 12, cost: 16000 },
-]);
-const objects = [];
-function add(type, name, x, z, scale, capacity, color, zone) {
-  objects.push(Object.freeze({ id: String(objects.length), type, name, x, z, scale, capacity, color, zone,
-    radius: scale * (type === 'whale' ? 2.7 : type === 'arch' ? 2.3 : type === 'airship' ? 3.4 : 1.1),
-    height: scale * (type === 'arch' ? 3.5 : type === 'whale' ? 2.3 : type === 'airship' ? 3.5 : 1.6) }));
-}
-add('duck', 'Самая первая уточка', 0, 10, 1, 36, '#ffcb45', 0);
-for (let i = 0; i < 6; i++) add(i % 3 === 0 ? 'ring' : 'duck', i % 3 === 0 ? 'Спасательный круг' : 'Уточка с характером', i % 2 ? 5 : -5, 8 - Math.floor(i / 2) * 5, 1.05 + i * .09, 45 + i * 12, ['#fc977e','#ffd862','#7fd1c4'][i % 3], 0);
-add('arch', 'Ворота летнего парка', 0, -5, 1.7, 280, '#f18468', 0);
-for (let i = 0; i < 8; i++) add(i % 2 ? 'flower' : 'duck', i % 2 ? 'Солнечный цветок' : 'Большая уточка', i % 2 ? 7 : -7, -12 - Math.floor(i / 2) * 5, 1.8 + i * .1, 240 + i * 100, ['#f7bd44','#84cfc0','#ed8d85','#c4abd9'][i % 4], 1);
-add('arch', 'Радужный проход', 0, -27, 2.2, 1500, '#8bcfc6', 1);
-add('whale', 'Китёнок', -12, -35, 2.8, 2400, '#6baabf', 2);
-add('whale', 'Китёнок', 12, -35, 2.8, 2800, '#8fbae1', 2);
-add('whale', 'Большой кит', 0, -43, 6.5, 18000, '#699fbb', 2);
-for (let i = 0; i < 6; i++) add('flower', 'Морской фонарик', i % 2 ? 17 : -17, -44 - Math.floor(i / 2) * 7, 2 + i * .15, 1800 + i * 400, ['#f3cb65','#dd9cb5','#95c9bc'][i % 3], 2);
-add('airship', 'Облачный корабль', 0, -69, 8, 56000, '#f0b95a', 2);
-export const OBJECTS = Object.freeze(objects);
-export const TOTAL_VOLUME = OBJECTS.reduce((a, o) => a + o.capacity, 0);
-export function newGame() {
-  return { version: SAVE_VERSION, tier: 0, credits: 0, filled: OBJECTS.map(() => 0), activeSeconds: 0 };
-}
-export function derive(state) {
-  const tool = TIERS[state.tier];
-  const completed = state.filled.reduce((n, v, i) => n + (v >= OBJECTS[i].capacity - 1e-6 ? 1 : 0), 0);
-  return { ...tool, multiplier: tool.flow / TIERS[0].flow, next: TIERS[state.tier + 1] ?? null,
-    completed, total: OBJECTS.length, volume: state.filled.reduce((a, b) => a + b, 0),
-    progress: state.filled.reduce((s, v, i) => s + v / OBJECTS[i].capacity, 0) / OBJECTS.length,
-    finished: completed === OBJECTS.length };
-}
-export function act(state, action) {
-  if (action.type !== 'upgrade') return state;
-  const next = TIERS[state.tier + 1];
-  if (!next || state.credits + 1e-6 < next.cost) return state;
-  return { ...state, tier: state.tier + 1, credits: Math.max(0, state.credits - next.cost) };
-}
-// Suspension never grants offline progress; objects never lose their inflation.
-export function tick(state, dt, targetIds = []) {
-  if (!Number.isFinite(dt) || dt <= 0) return state;
-  const seconds = Math.min(dt, .25), stats = derive(state);
-  const valid = [...new Set(targetIds)].map(Number).filter(i => Number.isInteger(i) && i >= 0 && i < OBJECTS.length && state.filled[i] < OBJECTS[i].capacity).slice(0, stats.targets);
-  if (!valid.length) return state;
-  const filled = [...state.filled]; let gained = 0;
-  for (const i of valid) {
-    const gain = Math.min(OBJECTS[i].capacity - filled[i], stats.flow * seconds);
-    filled[i] += gain; gained += gain;
-  }
-  return { ...state, filled, credits: state.credits + gained, activeSeconds: state.activeSeconds + seconds };
-}
-export function selectTargets(state, origin, direction) {
-  const stats = derive(state), candidates = [];
-  const len = Math.hypot(direction.x, direction.y, direction.z);
-  if (!Number.isFinite(len) || len < 1e-6) return [];
-  const d = { x: direction.x / len, y: direction.y / len, z: direction.z / len };
-  for (let i = 0; i < OBJECTS.length; i++) {
-    const o = OBJECTS[i], progress = state.filled[i] / o.capacity;
-    if (progress >= 1 - 1e-9) continue;
-    const p = { x: o.x - origin.x, y: Math.max(.35, o.height * progress * .45) - origin.y, z: o.z - origin.z };
-    const distance = Math.hypot(p.x, p.y, p.z), forward = p.x * d.x + p.y * d.y + p.z * d.z;
-    if (forward <= 0 || distance > stats.reach + o.radius) continue;
-    const cross = Math.sqrt(Math.max(0, distance * distance - forward * forward));
-    const width = o.radius + .9 + distance * (stats.targets > 1 ? .22 : .06);
-    if (cross > width) continue;
-    candidates.push({ id: o.id, score: cross / (o.radius + .9) + distance * .012 });
-  }
-  return candidates.sort((a, b) => a.score - b.score).slice(0, stats.targets).map(o => o.id);
-}
-export function restoreSave(raw) {
-  if (!raw || raw.version !== SAVE_VERSION || !Array.isArray(raw.filled)) return newGame();
-  const finite = (v, fallback = 0) => typeof v === 'number' && Number.isFinite(v) ? v : fallback;
-  const state = newGame();
-  state.filled = OBJECTS.map((o, i) => Math.min(o.capacity, Math.max(0, finite(raw.filled[i]))));
-  // Recompute the economy to recover safely from partial or damaged saves.
-  const earned = state.filled.reduce((s, n) => s + n, 0); let spent = 0;
-  const requested = Math.min(TIERS.length - 1, Math.max(0, Math.floor(finite(raw.tier))));
-  while (state.tier < requested && spent + TIERS[state.tier + 1].cost <= earned + 1e-6) spent += TIERS[++state.tier].cost;
-  state.credits = earned - spent; state.activeSeconds = Math.max(0, finite(raw.activeSeconds));
-  return state;
-}
+export const SAVE_VERSION=1;
+export const PROJECTS=[
+ {id:'lantern',name:'Светильник прилива',subtitle:'Первый свет на пустой набережной',description:'Бронзовый фонарь, который будет встречать корабли тёплым светом.',parts:['Основание','Световая камера','Венец'],capacity:[26,34,44],rewards:[20,30,50],height:3.6,radius:1.05},
+ {id:'fountain',name:'Чаша истока',subtitle:'Вернуть площади голос воды',description:'Три яруса чеканной бронзы. После последней отливки по ним побежит вода.',parts:['Нижняя чаша','Водяная колонна','Верхняя чаша'],capacity:[100,160,200],rewards:[80,110,160],height:4,radius:1.65},
+ {id:'orrery',name:'Небесный атлас',subtitle:'Подарить городу маленькую вселенную',description:'Армиллярная сфера: большие кольца, медленные орбиты и солнце в центре.',parts:['Постамент','Небесные кольца','Сердце атласа'],capacity:[340,520,720],rewards:[240,360,600],height:5,radius:1.85}
+];
+export const TOOLS=[{name:'Ручной тигель',flow:2.2,cost:0},{name:'Широкий носик',flow:8,cost:45},{name:'Двойной канал',flow:22,cost:180},{name:'Тигель великана',flow:48,cost:500}];
+export const COOL_SECONDS=2.8,REVEAL_SECONDS=2.4;
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+export function newGame(){return {version:SAVE_VERSION,cursor:0,amount:0,phase:'pour',phaseTime:0,credits:0,level:0,completed:0,elapsed:0};}
+export function derive(s){const cursor=clamp(s.cursor,0,8),projectIndex=Math.floor(cursor/3),part=cursor%3,project=PROJECTS[projectIndex],capacity=project.capacity[part],tool=TOOLS[s.level];return {projectIndex,project,part,capacity,tool,nextTool:TOOLS[s.level+1]||null,progress:clamp(s.amount/capacity,0,1),overall:(s.phase==='finished'?9:s.cursor+s.amount/capacity)/9,finished:s.phase==='finished',stageName:project.parts[part],heat:s.phase==='pour'?1:s.phase==='cool'?1-s.phaseTime/COOL_SECONDS:0,canUpgrade:!!TOOLS[s.level+1]&&s.credits>=TOOLS[s.level+1].cost};}
+export function act(s,a){if(a.type==='upgrade'){const n=TOOLS[s.level+1];return n&&s.credits>=n.cost?{...s,level:s.level+1,credits:s.credits-n.cost}:s;}if(a.type==='next'&&s.phase==='ready'){if(s.cursor===8)return {...s,phase:'finished',completed:3};return {...s,cursor:s.cursor+1,amount:0,phase:'pour',phaseTime:0};}return s;}
+export function tick(s,dt,input={}){if(!Number.isFinite(dt)||dt<=0||s.phase==='finished'||s.phase==='ready')return s;dt=Math.min(dt,.25);let n={...s,elapsed:s.elapsed+dt};const d=derive(s);if(s.phase==='pour'&&input.pouring){n.amount=Math.min(d.capacity,s.amount+dt*d.tool.flow);if(n.amount>=d.capacity){n.phase='cool';n.phaseTime=0;}}else if(s.phase==='cool'){n.phaseTime=Math.min(COOL_SECONDS,s.phaseTime+dt);if(n.phaseTime>=COOL_SECONDS){n.phase='reveal';n.phaseTime=0;}}else if(s.phase==='reveal'){n.phaseTime=Math.min(REVEAL_SECONDS,s.phaseTime+dt);if(n.phaseTime>=REVEAL_SECONDS){n.phase='ready';n.credits+=d.project.rewards[d.part];if(d.part===2)n.completed=Math.max(n.completed,d.projectIndex+1);}}return n;}
+export function restoreSave(raw){if(!raw||raw.version!==SAVE_VERSION)return newGame();const o=newGame();o.cursor=Number.isInteger(raw.cursor)?clamp(raw.cursor,0,8):0;o.level=Number.isInteger(raw.level)?clamp(raw.level,0,TOOLS.length-1):0;o.credits=Number.isFinite(raw.credits)?clamp(raw.credits,0,100000):0;o.elapsed=Number.isFinite(raw.elapsed)?clamp(raw.elapsed,0,1e8):0;const d=derive(o);o.amount=Number.isFinite(raw.amount)?clamp(raw.amount,0,d.capacity):0;o.phase=['pour','cool','reveal','ready','finished'].includes(raw.phase)?raw.phase:'pour';if(o.phase==='finished'&&o.cursor!==8)o.phase='pour';if(o.phase!=='pour')o.amount=d.capacity;o.phaseTime=Number.isFinite(raw.phaseTime)?clamp(raw.phaseTime,0,o.phase==='cool'?COOL_SECONDS:REVEAL_SECONDS):0;o.completed=Math.floor(o.cursor/3)+(o.cursor%3===2&&['ready','finished'].includes(o.phase)?1:0);return o;}

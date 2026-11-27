@@ -1,53 +1,13 @@
-import test from 'node:test';
+import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {newGame, derive, act, tick, restoreSave, selectTargets, OBJECTS, TIERS} from '../dist/engine.js';
-test('inflation preserves input and earns exactly the filled volume', () => {
-  const before = newGame(), after = tick(before, .25, ['0']);
-  assert.equal(before.filled[0], 0); assert.equal(after.filled[0], 1); assert.equal(after.credits, 1);
-});
-test('finished objects never overfill or earn twice; targets are deduplicated', () => {
-  let s = newGame(); for (let i = 0; i < 100; i++) s = tick(s, .25, ['0', '0']);
-  assert.equal(s.filled[0], OBJECTS[0].capacity); assert.equal(s.credits, OBJECTS[0].capacity);
-});
-test('upgrades require money and increase flow and simultaneous targets', () => {
-  let s = newGame(); assert.equal(act(s, {type:'upgrade'}), s);
-  s = {...s, credits:180}; s = act(s, {type:'upgrade'}); s = act(s, {type:'upgrade'});
-  assert.equal(s.tier, 2); assert.equal(s.credits, 0); assert.equal(derive(s).targets, 2);
-  assert.deepEqual(tick(s, .25, ['0','1','2']).filled.slice(0,3), [9,9,0]);
-});
-test('no drain, no offline progress, no negative or invalid time', () => {
-  const s = tick(newGame(), .25, ['0']);
-  assert.equal(tick(s, 1, []), s); assert.equal(tick(s,-1,['0']),s); assert.equal(tick(s,NaN,['0']),s);
-  assert.equal(tick(s,10000,['0']).filled[0],2);
-});
-test('equal active time yields equal volume across frame rates', () => {
-  let a=newGame(),b=newGame();
-  for(let n=0;n<60;n++) a=tick(a,1/60,['0']); for(let n=0;n<30;n++) b=tick(b,1/30,['0']);
-  assert.ok(Math.abs(a.credits-b.credits)<1e-8);
-});
-test('aim selection respects reach, camera direction, and completion', () => {
-  const s=newGame(), origin={x:0,y:1.8,z:18},dir={x:0,y:-.1,z:-1};
-  assert.deepEqual(selectTargets(s,origin,dir),['0']);
-  assert.deepEqual(selectTargets(s,origin,{x:0,y:0,z:1}),[]);
-  assert.deepEqual(selectTargets(s,origin,{x:0,y:0,z:0}),[]);
-  assert.deepEqual(selectTargets(s,{x:500,y:1,z:500},dir),[]);
-  s.filled[0]=OBJECTS[0].capacity; assert.ok(!selectTargets(s,origin,dir).includes('0'));
-});
-test('saves round-trip and recover from NaNs, old schema, and forged money', () => {
-  let s=newGame(); for(let n=0;n<60;n++)s=tick(s,.25,['1']); s=act(s,{type:'upgrade'});
-  const restored=restoreSave(JSON.parse(JSON.stringify(s)));
-  assert.deepEqual(restored.filled,s.filled); assert.equal(restored.tier,s.tier); assert.ok(Math.abs(restored.credits-s.credits)<1e-6);
-  assert.deepEqual(restoreSave({version:1}),newGame());
-  assert.deepEqual(restoreSave({version:2,tier:99,credits:Infinity,filled:[Infinity,-5,NaN],activeSeconds:-1}),newGame());
-});
-test('full loop is affordable and completable without waiting or reset exploits', () => {
-  let s=newGame(),frames=0;
-  while(!derive(s).finished && frames<100000){
-    s=act(s,{type:'upgrade'});
-    const targets=OBJECTS.filter((o,i)=>s.filled[i]<o.capacity).slice(0,derive(s).targets).map(o=>o.id);
-    s=tick(s,.25,targets);frames++;
-  }
-  assert.ok(derive(s).finished); assert.equal(s.tier,TIERS.length-1);
-  assert.ok(s.activeSeconds>30 && s.activeSeconds<300); assert.ok(s.credits>=0);
-  console.log(`Idealized active inflation: ${s.activeSeconds.toFixed(0)}s; excludes walking/aiming.`);
-});
+import {newGame,derive,act,tick,restoreSave,PROJECTS,COOL_SECONDS,REVEAL_SECONDS} from '../dist/engine.js';
+const advance=(s,seconds,pouring=false)=>{for(let t=0;t<seconds;t+=.05)s=tick(s,.05,{pouring});return s;};
+test('pouring is explicit and does not mutate state',()=>{const s=newGame(),snapshot=structuredClone(s);assert.equal(advance(s,1).amount,0);assert.ok(advance(s,1,true).amount>0);assert.deepEqual(s,snapshot);});
+test('finishing a pour cools then reveals, and pays its reward only once',()=>{let s=advance(newGame(),15,true);assert.equal(s.phase,'reveal');s=advance(s,REVEAL_SECONDS+1);assert.equal(s.phase,'ready');assert.equal(s.credits,20);assert.equal(s.amount,26);assert.deepEqual(advance(s,100,true),s);});
+test('next part is blocked until the finished cast is revealed',()=>{const s=newGame();assert.equal(act(s,{type:'next'}),s);let done=advance(s,25,true);const next=act(done,{type:'next'});assert.equal(next.cursor,1);assert.equal(next.amount,0);assert.equal(next.phase,'pour');assert.equal(done.cursor,0);});
+test('upgrades charge once and cannot be purchased without funds',()=>{const s=newGame();assert.equal(act(s,{type:'upgrade'}),s);const rich={...s,credits:50},up=act(rich,{type:'upgrade'});assert.equal(up.level,1);assert.equal(up.credits,5);assert.equal(rich.credits,50);assert.equal(act(up,{type:'upgrade'}),up);});
+test('all nine pours complete with affordable upgrades and preserve the finished collection',()=>{let s=newGame(),seconds=0;while(s.phase!=='finished'&&seconds<2000){if(derive(s).canUpgrade)s=act(s,{type:'upgrade'});if(s.phase==='ready')s=act(s,{type:'next'});else{s=tick(s,.05,{pouring:true});seconds+=.05;}}assert.equal(s.phase,'finished');assert.equal(s.completed,3);assert.equal(s.level,3);assert.equal(derive(s).overall,1);assert.ok(seconds>100&&seconds<400,`active seconds ${seconds}`);assert.deepEqual(restoreSave(s),s);console.log(`Complete active cycle: ${seconds.toFixed(1)}s, before time spent viewing and walking.`);});
+test('saving and reloading midway through cooling or reveal cannot duplicate rewards',()=>{let s=advance(newGame(),12,true);assert.equal(s.phase,'cool');s=restoreSave(JSON.parse(JSON.stringify(s)));s=advance(s,COOL_SECONDS+REVEAL_SECONDS+1);assert.equal(s.credits,20);let restored=restoreSave(JSON.parse(JSON.stringify(s)));assert.deepEqual(advance(restored,10),restored);});
+test('save validation discards another game and rejects malformed numbers',()=>{assert.deepEqual(restoreSave({version:300}),newGame());const s=restoreSave({version:1,cursor:Infinity,level:-1,amount:NaN,credits:-20,phase:'finished',phaseTime:Infinity});assert.equal(s.cursor,0);assert.equal(s.level,0);assert.equal(s.amount,0);assert.equal(s.credits,0);assert.equal(s.phase,'pour');assert.equal(s.phaseTime,0);});
+test('background-sized time steps are capped and invalid deltas ignored',()=>{const s=newGame();assert.equal(tick(s,Infinity,{pouring:true}),s);assert.equal(tick(s,-1,{pouring:true}),s);assert.equal(tick(s,NaN,{pouring:true}),s);assert.ok(tick(s,60,{pouring:true}).amount<=derive(s).tool.flow*.25);});
+test('completed exhibits are reconstructed from actual saved progress',()=>{for(let i=0;i<9;i++){const s=restoreSave({...newGame(),cursor:i,phase:'ready',completed:999});assert.equal(s.completed,Math.floor(i/3)+(i%3===2?1:0));assert.equal(derive(s).capacity,PROJECTS[Math.floor(i/3)].capacity[i%3]);}});

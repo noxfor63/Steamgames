@@ -9,9 +9,9 @@
 
 ## Implementation
 
-- Idea selection comes before implementation. Present concepts and discuss them with the user; create or change a prototype only after the user explicitly selects that concept. Research, comparisons, and repository documentation are authorized while choosing. The existing "Большой вдох" prototype is an unapproved experiment, not the selected game.
-- This is a buildless browser prototype. Keep the application in `dist/`, tests in `tests/`, and durable design notes in `docs/`.
-- Current direction: real 3D, first-person, relaxing repeated action with large visible growth. No per-action puzzles, sorting, resource routing, timers, upkeep, or failure penalties.
+- Idea selection comes before implementation. Present concepts and discuss them with the user; create or change a prototype only after the user explicitly selects that concept. Research, comparisons, and repository documentation are authorized while choosing. The user selected "Литейщик великанов" on 2026-11-27 and authorized a more polished implementation. "Большой вдох" remains an archived unapproved experiment in Git history.
+- This is a buildless browser game slice. Keep the application in `dist/`, tests in `tests/`, and durable design notes in `docs/`.
+- Current direction: real 3D foundry, a guided workbench camera plus first-person exploration, relaxing repeated casting with large visible growth. No per-action puzzles, sorting, resource routing, timers, upkeep, or failure penalties.
 - Keep gameplay rules deterministic and independent from DOM, WebGL, storage, and audio in `dist/engine.js`.
 - Preserve the pure engine API: `newGame`, `derive`, `act`, and `tick`. Actions must not mutate the input state.
 - Use Russian for player-facing copy and project documentation. State prototype limitations accurately; do not claim Steam support or multi-hour content before they exist.
@@ -26,6 +26,6 @@
 ## Verification
 
 - Run `npm test` after changing gameplay rules. Add tests for meaningful behavior or a reproduced regression.
-- For interface changes, verify relevant flows in the supported browser when available: start, first-person movement, inflation, upgrades, simultaneous targets, completion, saving/reloading, pause and reset confirmation.
+- For interface changes, verify relevant flows in the supported browser when available: start, casting, cooling/reveal, upgrades, first-person exploration, completion, saving/reloading, pause, audio settings and reset confirmation.
 - Check a desktop viewport and a narrow viewport when changing layout or pointer interaction.
 - Report verification limitations instead of claiming unperformed browser tests passed.
