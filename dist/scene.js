@@ -5,6 +5,8 @@ import {RenderPass} from './vendor/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from './vendor/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from './vendor/postprocessing/OutputPass.js';
 import {PROJECTS,derive,REVEAL_SECONDS} from './engine.js';
+import {createHands,createCrucible} from './hands.js';
+import {STAND,INLET,HANDLES,PLAYER_START,interactionFor} from './interaction.js';
 const TAU=Math.PI*2, V=T.Vector3, clamp=T.MathUtils.clamp, lerp=T.MathUtils.lerp;
 let seed=42;const rand=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
 function texture(kind){
@@ -42,7 +44,7 @@ export function createArtifact(index,metal,accent){return [lantern,fountain,orre
 export function createScene(canvas,settings={}){
  const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.localClippingEnabled=true;
  const scene=new T.Scene();scene.fog=new T.FogExp2('#a2b5ae',.012);
- const camera=new T.PerspectiveCamera(46,1,.1,500);camera.position.set(11,6.4,12);camera.lookAt(-2.7,2,0);camera.rotation.order='YXZ';
+ const camera=new T.PerspectiveCamera(46,1,.1,500);camera.position.set(11,6.4,12);camera.lookAt(-2.7,2,0);camera.rotation.order='YXZ';scene.add(camera);
  const pmrem=new T.PMREMGenerator(renderer),env=new RoomEnvironment();scene.environment=pmrem.fromScene(env,.06).texture;scene.environmentIntensity=.75;env.dispose();pmrem.dispose();
  const stoneTex=texture('stone'),metalTex=texture('metal'),ceramicTex=texture('ceramic');
  const mats={stone:new T.MeshStandardMaterial({color:'#9e9a86',roughness:.88,bumpMap:stoneTex,bumpScale:.075}),lightStone:new T.MeshStandardMaterial({color:'#c2b69b',roughness:.84,bumpMap:stoneTex,bumpScale:.045}),darkStone:new T.MeshStandardMaterial({color:'#465956',roughness:.85,bumpMap:stoneTex,bumpScale:.08}),bronze:new T.MeshStandardMaterial({color:'#9f6a38',metalness:.88,roughness:.31,roughnessMap:metalTex,bumpMap:metalTex,bumpScale:.015,envMapIntensity:1.3}),gold:new T.MeshStandardMaterial({color:'#d3aa64',metalness:.87,roughness:.24,roughnessMap:metalTex,bumpMap:metalTex,bumpScale:.009,envMapIntensity:1.5}),teal:new T.MeshStandardMaterial({color:'#2c6c63',metalness:.35,roughness:.38,bumpMap:ceramicTex,bumpScale:.022}),clay:new T.MeshStandardMaterial({color:'#b5a48a',roughness:.93,bumpMap:ceramicTex,bumpScale:.047,side:T.DoubleSide}),iron:new T.MeshStandardMaterial({color:'#263735',metalness:.7,roughness:.56}),wood:new T.MeshStandardMaterial({color:'#5c4c37',roughness:.9,bumpMap:metalTex,bumpScale:.04}),leaf:new T.MeshStandardMaterial({color:'#344f35',roughness:.9}),white:new T.MeshStandardMaterial({color:'#d7c5a1',roughness:.9})};
@@ -51,7 +53,7 @@ export function createScene(canvas,settings={}){
  const seaMat=new T.MeshStandardMaterial({color:'#3d797c',roughness:.24,metalness:.48});seaMat.onBeforeCompile=s=>{s.uniforms.uTime={value:0};seaMat.userData.shader=s;s.vertexShader='uniform float uTime;\n'+s.vertexShader;s.vertexShader=s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n transformed.z += sin(position.x*.19+uTime*.5)*.12+sin(position.y*.3+uTime*.3)*.055;');s.vertexShader=s.vertexShader.replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\n objectNormal.x+=cos(position.x*.19+uTime*.5)*.10;objectNormal.y+=cos(position.y*.3+uTime*.3)*.13;');};const sea=mesh(scene,new T.PlaneGeometry(450,450,120,120),seaMat,0,-1.2,-40);sea.rotation.x=-Math.PI/2;sea.castShadow=false;
  // A paved working terrace with individually bevelled-looking joints and inlaid rings.
  cyl(scene,mats.darkStone,0,-.55,-3,18.5,1.05,18.5,96);cyl(scene,mats.lightStone,0,.005,-3,18.6,.11,18.6,96);
- const tileGeo=new T.BoxGeometry(1.46,.1,1.46),tiles=[];for(let x=-17;x<=17;x+=1.5)for(let z=-20;z<=14;z+=1.5)if(Math.hypot(x,z+3)<17.8)tiles.push([x,z]);const tiled=new T.InstancedMesh(tileGeo,mats.stone,tiles.length),dummy=new T.Object3D();tiles.forEach(([x,z],i)=>{dummy.position.set(x,.075,z);dummy.rotation.y=0;dummy.updateMatrix();tiled.setMatrixAt(i,dummy.matrix);tiled.setColorAt(i,new T.Color().setHSL(.115,.10,.7+rand()*.23));});tiled.receiveShadow=true;scene.add(tiled);
+ const tileGeo=new T.BoxGeometry(1.46,.1,1.46),tiles=[];for(let x=-17;x<=17;x+=1.5)for(let z=-20;z<=14;z+=1.5)if(Math.hypot(x,z+3)<17.8&&Math.hypot(x,z)>2.45)tiles.push([x,z]);const tiled=new T.InstancedMesh(tileGeo,mats.stone,tiles.length),dummy=new T.Object3D();tiles.forEach(([x,z],i)=>{dummy.position.set(x,.075,z);dummy.rotation.y=0;dummy.updateMatrix();tiled.setMatrixAt(i,dummy.matrix);tiled.setColorAt(i,new T.Color().setHSL(.115,.10,.7+rand()*.23));});tiled.receiveShadow=true;scene.add(tiled);
  for(const r of [3.1,3.2,5.7,5.75]){const m=ring(scene,mats.bronze,r,.017,0,.14,0);m.castShadow=false;}
  for(let a=0;a<TAU;a+=TAU/16){const m=box(scene,mats.bronze,Math.sin(a)*4.4,.14,Math.cos(a)*4.4,.025,.01,2.3);m.rotation.y=a;m.castShadow=false;}
  // Rear parapet and open stone arcade.
@@ -71,59 +73,75 @@ export function createScene(canvas,settings={}){
  // Far coastline, distant roofs and a lighthouse, softened by sea haze.
  for(let i=0;i<13;i++){const x=-90+i*15,z=-62-Math.sin(i*2)*16;const rock=cyl(scene,mats.darkStone,x,-1.9,z,8+rand()*8,8+rand()*13,3+rand()*6,9);rock.rotation.z=(rand()-.5)*.1;for(let j=0;j<3;j++){const bx=x+(rand()-.5)*8,bz=z+(rand()-.5)*5,by=4+rand()*3;box(scene,mats.lightStone,bx,by,bz,2+rand()*2,3+rand()*3,3);const roof=mesh(scene,new T.ConeGeometry(2.6,1.4,4),mats.teal,bx,by+2.7,bz);roof.rotation.y=Math.PI/4;}}
  const lighthouse=new T.Group();lighthouse.position.set(-29,0,-42);scene.add(lighthouse);cyl(lighthouse,mats.lightStone,0,6,0,1.3,14,.8);for(const y of [10.5,12.9,13.8])cyl(lighthouse,mats.bronze,0,y,0,1.2,.15);mesh(lighthouse,new T.ConeGeometry(1.5,1.2,16),mats.teal,0,14.4,0);glow(lighthouse,0,13.3,0,3);
- // Central casting bed.
- cyl(scene,mats.darkStone,0,.35,0,2.35,.55,2.35);cyl(scene,mats.bronze,0,.67,0,2.23,.14,2.23);cyl(scene,mats.clay,0,.84,0,2.15,.22,2.15);for(let i=0;i<32;i++){let a=i/32*TAU;const m=box(scene,mats.gold,Math.sin(a)*2.27,.68,Math.cos(a)*2.27,.06,.07,.07);m.rotation.y=a;}
- const baseY=.97,projects=[],ghostMat=new T.MeshBasicMaterial({color:'#d5c39c',wireframe:true,transparent:true,opacity:.045,depthWrite:false});
+ // A recessed casting bed keeps the active metre of the mold at hand height.
+ const pitMat=new T.MeshStandardMaterial({color:'#101b19',roughness:1});
+ const pit=mesh(scene,new T.CircleGeometry(2.38,64),pitMat,0,.145,0);pit.rotation.x=-Math.PI/2;
+ for(const r of [2.25,2.38])ring(scene,mats.bronze,r,.035,0,.18,0);
+ const baseY=.35,workHeight=3,projects=[],ghostMat=new T.MeshBasicMaterial({color:'#d5c39c',wireframe:true,transparent:true,opacity:.04,depthWrite:false});
  for(let i=0;i<3;i++){
-  const root=createArtifact(i,mats.bronze,mats.gold);const bounds=new T.Box3().setFromObject(root),height=bounds.max.y-bounds.min.y;root.scale.setScalar(PROJECTS[i].height/height);root.position.y=baseY;scene.add(root);
+  const root=createArtifact(i,mats.bronze,mats.gold);const bounds=new T.Box3().setFromObject(root),height=bounds.max.y-bounds.min.y;root.scale.setScalar(workHeight/height);root.position.y=baseY;scene.add(root);
   const lower=new T.Plane(new V(0,-1,0),baseY),upper=new T.Plane(new V(0,-1,0),baseY),bottom=new T.Plane(new V(0,1,0),-baseY);
   const hot=new T.MeshStandardMaterial({color:'#f3a43e',metalness:.6,roughness:.25,emissive:'#ff6306',emissiveIntensity:2.2,clippingPlanes:[upper,bottom],clipShadows:true,bumpMap:metalTex,bumpScale:.014});
   const solids=[],molten=[],ghosts=[];const existing=[];root.traverse(m=>{if(m.isMesh)existing.push(m);});for(const m of existing){const orig=m.material;m.material=orig.clone();m.material.clippingPlanes=[lower];m.material.clipShadows=true;solids.push(m);const h=new T.Mesh(m.geometry,hot);h.position.copy(m.position);h.rotation.copy(m.rotation);h.scale.copy(m.scale);h.castShadow=true;h.receiveShadow=true;m.parent.add(h);molten.push(h);const gh=new T.Mesh(m.geometry,ghostMat);gh.position.copy(m.position);gh.rotation.copy(m.rotation);gh.scale.copy(m.scale);m.parent.add(gh);ghosts.push(gh);}
-  const mold=new T.Group();scene.add(mold);const petals=[];const r=PROJECTS[i].radius+.2;for(let j=0;j<3;j++){const a=(j+1)*Math.PI/2+.2;const petal=new T.Group();const geo=new T.CylinderGeometry(r+.13,r+.13,1,28,1,true,-.66,1.32);const shell=mesh(petal,geo,mats.clay);shell.rotation.y=a;const inner=mesh(petal,new T.CylinderGeometry(r,r,1,28,1,true,-.66,1.32),mats.clay);inner.rotation.y=a;for(const y of [-.49,.49]){const cap=mesh(petal,new T.RingGeometry(r,r+.13,28,1,-.66,1.32),mats.clay,0,y,0);cap.rotation.x=-Math.PI/2;cap.rotation.z=-a+Math.PI/2;}mold.add(petal);petals.push({petal,a});}
+  const mold=new T.Group();scene.add(mold);const petals=[];const r=PROJECTS[i].radius*workHeight/PROJECTS[i].height+.18;for(let j=0;j<3;j++){const a=(j+1)*Math.PI/2+.2;const petal=new T.Group();const geo=new T.CylinderGeometry(r+.13,r+.13,1,28,1,true,-.66,1.32);const shell=mesh(petal,geo,mats.clay);shell.rotation.y=a;const inner=mesh(petal,new T.CylinderGeometry(r,r,1,28,1,true,-.66,1.32),mats.clay);inner.rotation.y=a;for(const y of [-.49,.49]){const cap=mesh(petal,new T.RingGeometry(r,r+.13,28,1,-.66,1.32),mats.clay,0,y,0);cap.rotation.x=-Math.PI/2;cap.rotation.z=-a+Math.PI/2;}mold.add(petal);petals.push({petal,a});}
   root.visible=mold.visible=false;projects.push({root,lower,upper,bottom,hot,mold,petals,solids,molten,ghosts});
  }
  // Completed works live on the promenade, at progressively greater scale.
  const exhibits=[];for(let i=0;i<3;i++){const group=new T.Group(),loc=[[-7,-7],[0,-10],[8,-6]][i],scale=[.8,1.15,1.45][i];group.position.set(loc[0],.2,loc[1]);scene.add(group);cyl(group,mats.lightStone,0,.18,0,(PROJECTS[i].radius+.3)*scale,.35);const obj=createArtifact(i,mats.bronze,mats.gold);obj.scale.setScalar(scale);obj.position.y=.4;group.add(obj);const fx=new T.Group();obj.add(fx);if(i===0){sphere(fx,fireMat,0,2.22,0,.22);glow(fx,0,2.22,0,1.6);}if(i===1){const watermat=new T.MeshPhysicalMaterial({color:'#8ecac4',metalness:.18,roughness:.12,transparent:true,opacity:.62});for(let j=0;j<12;j++){let a=j/12*TAU;const jet=tube(fx,watermat,[[Math.cos(a)*.56,3.45,Math.sin(a)*.56],[Math.cos(a)*.9,3,Math.sin(a)*.9],[Math.cos(a)*1.01,2.5,Math.sin(a)*1.01]],.019);jet.castShadow=false;const flow=tube(fx,watermat,[[Math.cos(a)*1.02,2.6,Math.sin(a)*1.02],[Math.cos(a)*1.34,2,Math.sin(a)*1.34],[Math.cos(a)*1.48,1.4,Math.sin(a)*1.48]],.024);flow.castShadow=false;}}
   if(i===2)glow(fx,0,3.16,0,2.1);group.visible=false;exhibits.push({group,obj,fx});}
- // Crucible and continuous curved stream, with a bright core and small impact sparks.
- const crucible=new T.Group();scene.add(crucible);lathe(crucible,mats.iron,[[0,0],[.34,0],[.5,.2],[.54,.85],[.47,.91],[.4,.22],[0,.14]]);ring(crucible,mats.bronze,.51,.04,0,.84,0);ring(crucible,mats.bronze,.4,.04,0,.1,0);tube(crucible,mats.bronze,[[.45,.5,0],[.9,.55,0],[1,.15,0],[.4,.2,0]],.055);const pool=cyl(crucible,fireMat,0,.7,0,.43,.015);const spout=tube(crucible,mats.iron,[[-.45,.73,0],[-.68,.71,0],[-.8,.6,0]],.12);
- // A restrained articulated gantry makes the crucible belong to the workshop.
- const gantry=new T.Group();gantry.position.set(4.2,0,.55);scene.add(gantry);
- cyl(gantry,mats.darkStone,0,.18,0,.55,.3);cyl(gantry,mats.iron,0,3.85,0,.065,7.4);
- tube(gantry,mats.iron,[[0,7.5,0],[0,7.9,0],[-1.8,7.9,0],[-1.8,7.5,0]],.07);
- tube(gantry,mats.bronze,[[0,6.4,0],[-1.8,7.85,0]],.035);
- const cable=cyl(scene,mats.iron,2.4,5.5,.55,.012,1);
+ // The same crucible can stand on its rest or be gripped by the player's hands.
+ cyl(scene,mats.iron,STAND.x,.43,STAND.z,.29,.82,.26);
+ cyl(scene,mats.bronze,STAND.x,.83,STAND.z,.36,.08);
+ const restingTool=createCrucible(mats.iron,mats.bronze,fireMat);restingTool.position.set(STAND.x,STAND.y-.2,STAND.z);restingTool.scale.setScalar(.46);scene.add(restingTool);
+ const handRig=createHands(camera,mats);handRig.root.visible=false;
+ const inlet=new T.Group();inlet.position.set(INLET.x,INLET.y,INLET.z);scene.add(inlet);
+ lathe(inlet,mats.clay,[[.12,-.32],[.13,-.05],[.35,.02],[.43,.1],[.43,.17],[.36,.17],[.28,.07],[.07,-.04],[.07,-.32]]);
+ const inletRim=ring(inlet,mats.bronze,.4,.025,0,.14,0);
+ const inletMetal=cyl(inlet,fireMat,0,-.03,0,.19,.02);inletMetal.visible=false;
+ tube(scene,mats.iron,[[0,.8,1.65],[0,.46,1.6],[0,.42,.8]],.09);
+ const handleGroups=[];
+ for(const sign of [-1,1]){
+  const g=new T.Group();scene.add(g);box(g,mats.iron,0,0,-.12,.13,.42,.12);
+  tube(g,mats.bronze,[[0,-.16,0],[0,-.13,.08],[0,.13,.08],[0,.16,0]],.027);
+  handleGroups.push(g);
+ }
  const streamGeo=new T.CylinderGeometry(1,1,1,10,24,true),streamMat=new T.MeshStandardMaterial({color:'#fff0a5',emissive:'#ff8b18',emissiveIntensity:3.3,roughness:.23,metalness:.6});const stream=mesh(scene,streamGeo,streamMat);stream.frustumCulled=false;stream.castShadow=false;const impactGlow=glow(scene,0,1.2,0,1.4),pourLight=new T.PointLight('#ffa32f',0,7,2);scene.add(pourLight);const sparkGeo=new T.BufferGeometry(),sparkPositions=new Float32Array(70*3);sparkGeo.setAttribute('position',new T.BufferAttribute(sparkPositions,3));const sparks=new T.Points(sparkGeo,new T.PointsMaterial({color:'#ffd28d',size:.035,transparent:true,opacity:.8,depthWrite:false,blending:T.AdditiveBlending}));sparks.frustumCulled=false;scene.add(sparks);
  const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));const bloom=new UnrealBloomPass(new T.Vector2(800,600),.27,.6,1.15);composer.addPass(bloom);composer.addPass(new OutputPass());
- let mode='intro',orbitYaw=.52,orbitPitch=.31,orbitDistance=11.4,pointer=new T.Vector2(),displayFill=0,lastCursor=-1,walkYaw=.2,walkPitch=0,transition=0;const targetCamera=new V(),lookTarget=new V(),tmp=new V();
+ let mode='intro',displayFill=0,lastCursor=-1,yaw=0,pitch=-.38,moving=false;const targetCamera=new V(),lookTarget=new V(),direction=new V();
  function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer.setSize(w,h);}
  function quality(q){renderer.setPixelRatio(Math.min(devicePixelRatio,q==='high'?1.65:1));bloom.enabled=q==='high';sun.shadow.mapSize.set(q==='high'?2048:1024,q==='high'?2048:1024);sun.shadow.map?.dispose();sun.shadow.map=null;resize();}
- function setMode(next){mode=next;transition=1;if(next==='walk'){camera.position.set(3.9,1.85,6);walkYaw=.1;walkPitch=0;}else if(next==='work'){orbitYaw=.52;orbitPitch=.31;orbitDistance=11.4;}}
- function orbit(dx,dy,sensitivity=1){if(mode==='walk'){walkYaw-=dx*.003*sensitivity;walkPitch=clamp(walkPitch-dy*.003*sensitivity,-1.1,1.1);}else{orbitYaw-=dx*.005*sensitivity;orbitPitch=clamp(orbitPitch+dy*.004*sensitivity,.05,.85);}}
- function zoom(delta){orbitDistance=clamp(orbitDistance+delta*.008,7.5,17);}
- function resetCamera(){orbitYaw=.52;orbitPitch=.31;orbitDistance=11.4;if(mode==='walk'){camera.position.set(3.9,1.85,6);walkYaw=.1;walkPitch=0;}}
- function move(f,side,dt){if(mode!=='walk')return;const speed=3.5*dt/Math.max(1,Math.hypot(f,side)),nx=camera.position.x+(-Math.sin(walkYaw)*f+Math.cos(walkYaw)*side)*speed,nz=camera.position.z+(-Math.cos(walkYaw)*f-Math.sin(walkYaw)*side)*speed;const blocked=Math.hypot(nx,nz)<2.8||Math.hypot(nx+5.5,nz+1.6)<1.7||exhibits.some(e=>e.group.visible&&Math.hypot(nx-e.group.position.x,nz-e.group.position.z)<2.3);if(!blocked&&Math.hypot(nx,nz+3)<16.5){camera.position.x=nx;camera.position.z=nz;}}
- function aim(x,y){pointer.set(clamp(x,-1,1),clamp(y,-1,1));}
+ function setMode(next){mode=next;if(next!=='intro'){camera.fov=66;camera.updateProjectionMatrix();camera.position.set(PLAYER_START.x,PLAYER_START.y,PLAYER_START.z);yaw=0;pitch=-.38;camera.rotation.set(pitch,yaw,0,'YXZ');}}
+ function look(dx,dy,sensitivity=1){if(mode==='intro')return;yaw-=dx*.0023*sensitivity;pitch=clamp(pitch-dy*.0023*sensitivity,-1.25,1.15);camera.rotation.set(pitch,yaw,0,'YXZ');camera.updateMatrixWorld(true);}
+ function move(f,side,dt){moving=!!(f||side);if(mode==='intro')return;const speed=2.8*dt/Math.max(1,Math.hypot(f,side)),nx=camera.position.x+(-Math.sin(yaw)*f+Math.cos(yaw)*side)*speed,nz=camera.position.z+(-Math.cos(yaw)*f-Math.sin(yaw)*side)*speed;const blocked=Math.hypot(nx,nz)<2.5||Math.hypot(nx-STAND.x,nz-STAND.z)<.45||Math.hypot(nx+5.5,nz+1.6)<1.7||exhibits.some(e=>e.group.visible&&Math.hypot(nx-e.group.position.x,nz-e.group.position.z)<2.3);if(!blocked&&Math.hypot(nx,nz+3)<16.5){camera.position.x=nx;camera.position.z=nz;}}
+ function getInteraction(state){camera.updateMatrixWorld(true);camera.getWorldDirection(direction);const result=interactionFor(state,camera.position,direction);if(handRig.carry<.9)result.point=null;result.readyToPour=handRig.carry>=.9&&handRig.spoutWorld().y>=INLET.y+.015;return result;}
  function render(state,dt,time,{pouring=false,reduced=false}={}){
   const d=derive(state),p=PROJECTS[d.projectIndex],model=projects[d.projectIndex];if(lastCursor!==state.cursor){displayFill=d.progress;lastCursor=state.cursor;}displayFill=lerp(displayFill,d.progress,1-Math.exp(-dt*12));
   for(let i=0;i<projects.length;i++){projects[i].root.visible=i===d.projectIndex&&state.phase!=='finished';projects[i].mold.visible=i===d.projectIndex&&state.phase!=='finished';exhibits[i].group.visible=i<state.completed;}
-  const stageBottom=p.height*d.part/3,stageTop=p.height*(d.part+1)/3,fillY=baseY+stageBottom+(stageTop-stageBottom)*displayFill;
-  model.lower.constant=baseY+stageBottom+(state.phase==='ready'||state.phase==='finished'?stageTop-stageBottom:0);model.upper.constant=fillY;model.bottom.constant=-(baseY+stageBottom);
+  const stageBottom=workHeight*d.part/3,stageTop=workHeight*(d.part+1)/3,fillY=baseY+(stageTop-stageBottom)*displayFill;model.root.position.y=baseY-stageBottom;
+  model.lower.constant=baseY+(state.phase==='ready'||state.phase==='finished'?stageTop-stageBottom:0);model.upper.constant=fillY;model.bottom.constant=-baseY;
   const hotVisible=state.phase!=='ready'&&state.phase!=='finished'&&state.amount>0;model.molten.forEach(m=>m.visible=hotVisible);model.ghosts.forEach(m=>m.visible=state.phase==='pour');
   model.hot.color.set('#bd8b4b').lerp(new T.Color('#ffcb65'),d.heat);model.hot.emissive.set('#ff6507');model.hot.emissiveIntensity=Math.max(0,d.heat)*2.6;
-  const open=state.phase==='ready'?1:state.phase==='reveal'?Math.min(1,state.phaseTime/REVEAL_SECONDS):0,smooth=open*open*(3-2*open);model.mold.position.y=baseY+stageBottom+(stageTop-stageBottom)/2;model.mold.scale.y=stageTop-stageBottom;for(const {petal,a}of model.petals){petal.position.set(Math.sin(a)*smooth*1.5,-smooth*.12,Math.cos(a)*smooth*1.5);petal.rotation.x=Math.cos(a)*smooth*.2;petal.rotation.z=-Math.sin(a)*smooth*.2;}
-  const active=pouring&&state.phase==='pour';const aimX=pointer.x*.38,aimZ=pointer.y*.22;crucible.position.set(2.4,Math.max(3.6,fillY+1.6),.55);crucible.rotation.z=active?.55:.03;crucible.visible=state.phase==='pour'&&mode!=='intro';pool.material.emissiveIntensity=3.2;
-  cable.visible=crucible.visible;cable.scale.y=Math.max(.05,7.5-crucible.position.y-.8);cable.position.y=7.5-cable.scale.y/2;
-  stream.visible=impactGlow.visible=sparks.visible=active;const end=new V(aimX,fillY+.025,aimZ),start=new V(-.8,.6,0);crucible.localToWorld(start);if(active){const pos=stream.geometry.attributes.position;for(let i=0;i<pos.count;i++){const iy=Math.floor(i/11),angle=(i%11)/10*TAU,t=iy/24,curve=start.clone().lerp(end,t);curve.y+=Math.sin(t*Math.PI)*.15;const r=(.045+state.level*.014)*(1+.12*Math.sin(t*30-time*22));pos.setXYZ(i,curve.x+Math.cos(angle)*r,curve.y,curve.z+Math.sin(angle)*r);}pos.needsUpdate=true;stream.geometry.computeVertexNormals();impactGlow.position.copy(end);impactGlow.scale.setScalar(.9+state.level*.2);pourLight.position.copy(end).add(new V(0,.3,0));for(let i=0;i<70;i++){let f=(time*(.8+(i%5)*.13)+i*.148)%1,a=i*2.399;sparkPositions[i*3]=end.x+Math.sin(a)*f*.55;sparkPositions[i*3+1]=end.y+Math.sin(f*Math.PI)*(.12+(i%7)*.055);sparkPositions[i*3+2]=end.z+Math.cos(a)*f*.55;}sparkGeo.attributes.position.needsUpdate=true;sparks.visible=!reduced;}
+  const open=state.phase==='ready'?1:state.phase==='reveal'?Math.min(1,state.phaseTime/REVEAL_SECONDS):0,smooth=open*open*(3-2*open);model.mold.position.y=baseY+(stageTop-stageBottom)/2;model.mold.scale.y=stageTop-stageBottom;for(const {petal,a}of model.petals){petal.position.set(Math.sin(a)*smooth*1.5,-smooth*.12,Math.cos(a)*smooth*1.5);petal.rotation.x=Math.cos(a)*smooth*.2;petal.rotation.z=-Math.sin(a)*smooth*.2;}
+  const active=pouring&&state.held&&handRig.carry>=.9&&state.phase==='pour'&&mode!=='intro';
+  const points=handleGroups.map((g,i)=>{const sign=i===0?-1:1;g.position.set(sign*(.46+smooth*.53),HANDLES.y,HANDLES.z+smooth*.15);return g.position.clone().add(new V(0,0,.06));});
+  const openingPose=state.phase==='reveal';
+  handRig.update({held:state.held,pouring:active,openingPose,opening:open,moving,reduced,dt,time,handlePoints:points});handRig.root.visible=mode!=='intro';
+  restingTool.visible=!state.held&&handRig.carry<.003;
+  const interaction=getInteraction(state);inletRim.material=interaction.point?mats.gold:mats.bronze;
+  inletMetal.visible=active&&!!interaction.point;
+  stream.visible=impactGlow.visible=sparks.visible=active;
+  const start=handRig.spoutWorld();camera.getWorldDirection(direction);
+  const end=interaction.point?new V(interaction.point.x,interaction.point.y,interaction.point.z):start.clone().addScaledVector(direction,.65);if(!interaction.point)end.y=.18;
+  if(active){const pos=stream.geometry.attributes.position;for(let i=0;i<pos.count;i++){const iy=Math.floor(i/11),angle=(i%11)/10*TAU,t=iy/24,curve=start.clone().lerp(end,t);curve.y+=Math.sin(t*Math.PI)*.08;const r=(.023+state.level*.009)*(1+.12*Math.sin(t*30-time*22));pos.setXYZ(i,curve.x+Math.cos(angle)*r,curve.y,curve.z+Math.sin(angle)*r);}pos.needsUpdate=true;stream.geometry.computeVertexNormals();impactGlow.position.copy(end);impactGlow.scale.setScalar(.6+state.level*.15);pourLight.position.copy(end).add(new V(0,.3,0));for(let i=0;i<70;i++){let f=(time*(.8+(i%5)*.13)+i*.148)%1,a=i*2.399;sparkPositions[i*3]=end.x+Math.sin(a)*f*.3;sparkPositions[i*3+1]=end.y+Math.sin(f*Math.PI)*(.1+(i%7)*.025);sparkPositions[i*3+2]=end.z+Math.cos(a)*f*.3;}sparkGeo.attributes.position.needsUpdate=true;sparks.visible=!reduced;}
   pourLight.intensity=lerp(pourLight.intensity,active?9:state.phase==='cool'?d.heat*5:0,Math.min(1,dt*8));fireLight.intensity=11+Math.sin(time*3.2)*.8;fire.material.emissiveIntensity=3+Math.sin(time*5)*.15;
   if(seaMat.userData.shader)seaMat.userData.shader.uniforms.uTime.value=reduced?0:time;for(const e of exhibits)if(e.group.visible&&e.obj.userData.orbits&&!reduced)e.obj.userData.orbits.forEach((o,i)=>{o.rotation.y+=dt*.055*(i+1);});
-  if(mode==='intro'){const a=.73+(reduced?0:Math.sin(time*.055)*.07);targetCamera.set(Math.sin(a)*17,6.1,Math.cos(a)*17);lookTarget.set(-3.7,2,0);}else if(mode==='work'){const dist=orbitDistance*(camera.aspect<.85?1.2:1);targetCamera.set(Math.sin(orbitYaw)*Math.cos(orbitPitch)*dist,2+Math.sin(orbitPitch)*dist,Math.cos(orbitYaw)*Math.cos(orbitPitch)*dist);lookTarget.set(0,2.25,0);}else{camera.rotation.set(walkPitch,walkYaw,0,'YXZ');}
+  if(mode==='intro'){const a=.73+(reduced?0:Math.sin(time*.055)*.07);targetCamera.set(Math.sin(a)*17,6.1,Math.cos(a)*17);lookTarget.set(-3.7,2,0);}else camera.rotation.set(pitch,yaw,0,'YXZ');
   if(mode==='intro'){
    for(const m of projects){m.root.visible=false;m.mold.visible=false;}
-   const hero=projects[2];hero.root.visible=true;hero.lower.constant=20;hero.molten.forEach(m=>m.visible=false);hero.ghosts.forEach(m=>m.visible=false);
+   const hero=projects[2];hero.root.visible=true;hero.root.position.y=baseY;hero.lower.constant=20;hero.molten.forEach(m=>m.visible=false);hero.ghosts.forEach(m=>m.visible=false);
    if(!reduced)hero.root.rotation.y=Math.sin(time*.06)*.12;
   }else projects[2].root.rotation.y=0;
-  if(mode!=='walk'){camera.position.lerp(targetCamera,reduced?1:1-Math.exp(-dt*3.2));camera.lookAt(lookTarget);}composer.render();
+  if(mode==='intro'){camera.position.lerp(targetCamera,reduced?1:1-Math.exp(-dt*3.2));camera.lookAt(lookTarget);}composer.render();
  }
- quality(settings.quality||'high');return {render,resize,quality,setMode,orbit,zoom,resetCamera,move,aim,camera,renderer};
+ quality(settings.quality||'high');return {render,resize,quality,setMode,look,move,getInteraction,camera,renderer};
 }
